@@ -1,0 +1,20 @@
+{{ define "content" }}
+<a class="btn btn-primary" href="/companies/new">Add company</a>
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <table width=100%>
+                {{ range $key, $value := .Companies }}
+                    <tr>
+                        <td><a href="/companies/{{ .ID }}">{{ .Name }}</a></td>
+                        <td>{{ .Type }}</td>
+                        <td>{{ .Industry }}</td>
+                    </tr>
+                {{ end }}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

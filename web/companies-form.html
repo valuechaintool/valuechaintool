@@ -1,0 +1,45 @@
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" {{ if .Company }} value="{{ .Company.Name }}" {{ end }}>
+                    </div>
+                    <div class="form-group">
+                        <label for="industry">Industry</label>
+                        <input type="text" class="form-control" id="industry" name="industry" {{ if .Company }} value="{{ .Company.Industry }}" {{ end }}>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Type</label>
+                        <select class="custom-select my-1 mr-sm-2" id="type" name="type">
+                            <option value="partner" selected>Partner</option>
+                            <option value="customer">Customer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" class="form-control" id="country" name="country" {{ if .Company }} value="{{ .Company.Country }}" {{ end }}>
+                    </div>
+                    <div class="form-group">
+                        <label for="salesManager">Sales Manager</label>
+                        <input type="text" class="form-control" id="salesManager" name="salesManager" {{ if .Company }} value="{{ .Company.SalesManager }}" {{ end }}>
+                    </div>
+                    <div class="form-group">
+                        <label for="technicalManager">Technical Manager</label>
+                        <input type="text" class="form-control" id="technicalManager" name="technicalManager" {{ if .Company }} value="{{ .Company.TechnicalManager }}" {{ end }}>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <input type="text" class="form-control" id="notes" name="notes" {{ if .Company }} value="{{ .Company.Notes }}" {{ end }}>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a role="button" href="javascript:history.back()" type="back" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}

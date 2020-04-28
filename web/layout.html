@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>{{ .PageTitle }}</title>
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="/css/fontawesome-5.13.0.min.css">
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="/css/bootstrap-4.4.1.min.css">
+
+        <script src="/js/jquery-3.4.1.slim.min.js"></script>
+
+    </head>
+    <body class="mdc-typography">
+        {{ block "navbar" . }}
+        <header>
+            <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 border-bottom box-shadow">
+                <h5 class="my-0 mr-md-auto font-weight-normal"><a href="/">Value Chain Tool</a></h5>
+            </div>
+        </header>
+        {{ end }}
+
+        <main style="padding-bottom: 20px;">
+            <div class="container-fluid">
+                {{ block "content" . }}{{ end }}
+            </div>
+        </main>
+
+        <!-- Popper -->
+        <script src="/js/popper-1.16.0.min.js"></script>
+        <!-- Bootstrap JavaScript -->
+        <script src="/js/bootstrap-4.4.1.min.js"></script>
+    </body>
+</html>
+

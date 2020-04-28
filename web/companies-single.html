@@ -1,0 +1,42 @@
+{{ define "content" }}
+<a class="btn btn-primary" href="/companies/{{ .Company.ID }}/edit">Edit company</a>
+<a class="btn btn-danger" href="/companies/{{ .Company.ID }}/delete">Delete company</a>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <table width=100%>
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ .Company.Name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Industry</td>
+                        <td>{{ .Company.Industry }}</td>
+                    </tr>
+                    <tr>
+                        <td>Type</td>
+                        <td>{{ .Company.Type }}</td>
+                    </tr>
+                    <tr>
+                        <td>Country</td>
+                        <td>{{ .Company.Country }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sales Manager</td>
+                        <td>{{ .Company.SalesManager }}</td>
+                    </tr>
+                    <tr>
+                        <td>Technical Manager</td>
+                        <td>{{ .Company.TechnicalManager }}</td>
+                    </tr>
+                    <tr>
+                        <td>Notes</td>
+                        <td>{{ .Company.Notes }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}
