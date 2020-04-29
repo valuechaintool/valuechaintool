@@ -7,34 +7,86 @@
             <div class="card-body">
                 <table width=100%>
                     <tr>
-                        <td>Name</td>
+                        <th>Name</th>
                         <td>{{ .Company.Name }}</td>
                     </tr>
                     <tr>
-                        <td>Industry</td>
+                        <th>Industry</th>
                         <td>{{ .Company.Industry }}</td>
                     </tr>
                     <tr>
-                        <td>Type</td>
-                        <td>{{ .Company.Type }}</td>
+                        <th>Type</th>
+                        <td>{{ if eq .Company.Type 1 }}Partner{{ else }}Customer{{ end }}</td>
                     </tr>
                     <tr>
-                        <td>Country</td>
+                        <th>Country</th>
                         <td>{{ .Company.Country }}</td>
                     </tr>
                     <tr>
-                        <td>Sales Manager</td>
+                        <th>Sales Manager</th>
                         <td>{{ .Company.SalesManager }}</td>
                     </tr>
                     <tr>
-                        <td>Technical Manager</td>
+                        <th>Technical Manager</th>
                         <td>{{ .Company.TechnicalManager }}</td>
                     </tr>
                     <tr>
-                        <td>Notes</td>
+                        <th>Notes</th>
                         <td>{{ .Company.Notes }}</td>
                     </tr>
                 </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <a class="btn btn-primary" href="/relationships/new?left_id={{ .Company.ID }}">Add relation</a><br />
+                <b>Left</b>
+                <table width=100%>
+                    <tr>
+                        <th></th>
+                        <th>Referent</th>
+                        <th>Other company</th>
+                        <th>OC Referent</th>
+                        <th>Type</th>
+                        <th>Quality</th>
+                        <th>Notes</th>
+                    </tr>
+                    {{ range $i, $r := .Company.RelationshipsLeft }}
+                    <tr>
+                        <td><a href="/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a></td>
+                        <td>{{ $r.LeftPoC }}</td>
+                        <td><a href="/companies/{{ $r.RightID }}">{{ $r.RightCompany.Name }}</a></td>
+                        <td>{{ $r.RightPoC }}</td>
+                        <td>{{ $r.Type }}</td>
+                        <td>{{ $r.Quality }}</td>
+                        <td>{{ $r.Notes }}</td>
+                    </tr>
+                    {{ end }}
+                </table>
+                <br /><b>Right</b>
+                <table width=100%>
+                    <tr>
+                        <th></th>
+                        <th>Referent</th>
+                        <th>Other company</th>
+                        <th>OC Referent</th>
+                        <th>Type</th>
+                        <th>Quality</th>
+                        <th>Notes</th>
+                    </tr>
+                    {{ range $i, $r := .Company.RelationshipsRight }}
+                    <tr>
+                        <td><a href="/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a></td>
+                        <td>{{ $r.RightPoC }}</td>
+                        <td><a href="/companies/{{ $r.LeftID }}">{{ $r.LeftCompany.Name }}</a></td>
+                        <td>{{ $r.LeftPoC }}</td>
+                        <td>{{ $r.Type }}</td>
+                        <td>{{ $r.Quality }}</td>
+                        <td>{{ $r.Notes }}</td>
+                    </tr>
+                    {{ end }}
             </div>
         </div>
     </div>

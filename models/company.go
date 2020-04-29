@@ -10,17 +10,19 @@ import (
 )
 
 type Company struct {
-	ID               uuid.UUID   `json:"id" sql:"primary key" gorm:"type:uuid"`
-	CreatedAt        time.Time   `json:"created_at"`
-	UpdatedAt        time.Time   `json:"updated_at"`
-	DeletedAt        *time.Time  ``
-	Name             string      `json:"name"`
-	Type             CompanyType `json:"type"`
-	Industry         string      `json:"industry"`
-	Country          string      `json:"country"`
-	SalesManager     string      `json:"sales_manager"`
-	TechnicalManager string      `json:"technical_manager"`
-	Notes            string      `json:"notes"`
+	ID                 uuid.UUID      `json:"id" sql:"primary key" gorm:"type:uuid"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+	DeletedAt          *time.Time     ``
+	Name               string         `json:"name"`
+	Type               CompanyType    `json:"type"`
+	Industry           string         `json:"industry"`
+	Country            string         `json:"country"`
+	SalesManager       string         `json:"sales_manager"`
+	TechnicalManager   string         `json:"technical_manager"`
+	Notes              string         `json:"notes"`
+	RelationshipsLeft  []Relationship `json:"relations_left" gorm:"foreignkey:LeftID"`
+	RelationshipsRight []Relationship `json:"relations_right" gorm:"foreignkey:RightID"`
 }
 
 func (c *Company) BeforeSave() error {
@@ -39,6 +41,18 @@ func (c *Company) Validate() error {
 }
 
 func (c *Company) EagerLoad() error {
+	session.Model(c).Related(&c.RelationshipsLeft, "RelationshipsLeft")
+	for i := range c.RelationshipsLeft {
+		if err := c.RelationshipsLeft[i].EagerLoad(2); err != nil {
+			return err
+		}
+	}
+	session.Model(c).Related(&c.RelationshipsRight, "RelationshipsRight")
+	for i := range c.RelationshipsRight {
+		if err := c.RelationshipsRight[i].EagerLoad(1); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

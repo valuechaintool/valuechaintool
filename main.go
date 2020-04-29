@@ -45,6 +45,9 @@ func main() {
 	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/edit", web.CompaniesUpdate).Methods("GET")
 	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/edit", web.CompaniesUpdatePost).Methods("POST")
 	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/delete", web.CompaniesDelete).Methods("GET")
+	r.HandleFunc("/relationships/new", web.RelationshipsCreate).Methods("GET")
+	r.HandleFunc("/relationships/new", web.RelationshipsCreatePost).Methods("POST")
+	r.HandleFunc("/relationships/{id:[a-z0-9/-]{36}}/delete", web.RelationshipsDelete).Methods("GET")
 
 	// Static contents
 	css := http.StripPrefix("/css/", http.FileServer(http.Dir("./css/")))

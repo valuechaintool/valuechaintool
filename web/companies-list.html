@@ -8,7 +8,7 @@
                 {{ range $key, $value := .Companies }}
                     <tr>
                         <td><a href="/companies/{{ .ID }}">{{ .Name }}</a></td>
-                        <td>{{ .Type }}</td>
+                        <td>{{ if eq .Type 1 }}Partner{{ else }}Customer{{ end }}</td>
                         <td>{{ .Industry }}</td>
                     </tr>
                 {{ end }}

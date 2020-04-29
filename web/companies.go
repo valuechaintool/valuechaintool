@@ -115,6 +115,14 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if err := company.EagerLoad(); err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-single.html"))
 	d := struct {
 		PageTitle string

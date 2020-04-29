@@ -1,0 +1,46 @@
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="form-group">
+                        <label for="type">Left</label>
+                        <select class="custom-select my-1 mr-sm-2" id="left" name="left">
+                            {{ range $i, $c := .Companies }}<option value="{{ $c.ID }}">{{ $c.Name}}</option>{{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="industry">Left PoC</label>
+                        <input type="text" class="form-control" id="left_poc" name="left_poc">
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Right</label>
+                        <select class="custom-select my-1 mr-sm-2" id="right" name="right">
+                            {{ range $i, $c := .Companies }}<option value="{{ $c.ID }}">{{ $c.Name}}</option>{{ end }}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="salesManager">Right PoC</label>
+                        <input type="text" class="form-control" id="right_poc" name="right_poc">
+                    </div>
+                    <div class="form-group">
+                        <label for="technicalManager">Type</label>
+                        <input type="text" class="form-control" id="type" name="type">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Quality</label>
+                        <input type="text" class="form-control" id="quality" name="quality">
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <input type="text" class="form-control" id="notes" name="notes">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a role="button" href="javascript:history.back()" type="back" class="btn btn-secondary">Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}
