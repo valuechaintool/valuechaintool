@@ -15,13 +15,9 @@ type Relationship struct {
 	DeletedAt    *time.Time ``
 	LeftID       uuid.UUID  `json:"left_id" gorm:"type:uuid"`
 	LeftCompany  *Company   `json:"left_company" gorm:"foreignkey:LeftID"`
-	LeftPoC      string     `json:"left_poc"`
 	RightID      uuid.UUID  `json:"right_id" gorm:"type:uuid"`
 	RightCompany *Company   `json:"right_company" gorm:"foreignkey:RightID"`
-	RightPoC     string     `json:"right_poc"`
-	Type         string     `json:"type"`
 	Quality      string     `json:"quality"`
-	Notes        string     `json:"notes"`
 }
 
 func (r *Relationship) BeforeSave() error {

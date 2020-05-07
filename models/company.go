@@ -15,12 +15,10 @@ type Company struct {
 	UpdatedAt          time.Time      `json:"updated_at"`
 	DeletedAt          *time.Time     ``
 	Name               string         `json:"name"`
+	TypeID             uuid.UUID      `gorm:"type:uuid"`
 	Type               CompanyType    `json:"type"`
 	Industry           string         `json:"industry"`
 	Country            string         `json:"country"`
-	SalesManager       string         `json:"sales_manager"`
-	TechnicalManager   string         `json:"technical_manager"`
-	Notes              string         `json:"notes"`
 	RelationshipsLeft  []Relationship `json:"relations_left" gorm:"foreignkey:LeftID"`
 	RelationshipsRight []Relationship `json:"relations_right" gorm:"foreignkey:RightID"`
 }
