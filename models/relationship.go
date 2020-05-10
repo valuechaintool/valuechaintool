@@ -27,6 +27,18 @@ func (r *Relationship) BeforeSave() error {
 	return nil
 }
 
+func (r *Relationship) Reverse() Relationship {
+	return Relationship{
+		ID:        r.ID,
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
+		DeletedAt: r.DeletedAt,
+		LeftID:    r.RightID,
+		RightID:   r.LeftID,
+		Quality:   r.Quality,
+	}
+}
+
 func (r *Relationship) Conflicts() bool {
 	return false
 }
@@ -90,4 +102,28 @@ func GetRelationship(id uuid.UUID) (*Relationship, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func ListRelationshipsByMember(id uuid.UUID) ([]Relationship, error) {
+	var items []Relationship
+	if err := session.Where("left_id = ?").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	for i := range items {
+		if err := items[i].EagerLoad(2); err != nil {
+			return nil, err
+		}
+	}
+	var rightItems []Relationship
+	if err := session.Where("right_id = ?").Find(&rightItems).Error; err != nil {
+		return nil, err
+	}
+	for _, r := range rightItems {
+		item := r.Reverse()
+		if err := item.EagerLoad(2); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, nil
 }

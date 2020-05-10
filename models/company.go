@@ -10,17 +10,17 @@ import (
 )
 
 type Company struct {
-	ID                 uuid.UUID      `json:"id" sql:"primary key" gorm:"type:uuid"`
-	CreatedAt          time.Time      `json:"created_at"`
-	UpdatedAt          time.Time      `json:"updated_at"`
-	DeletedAt          *time.Time     ``
-	Name               string         `json:"name"`
-	TypeID             uuid.UUID      `gorm:"type:uuid"`
-	Type               CompanyType    `json:"type"`
-	Industry           string         `json:"industry"`
-	Country            string         `json:"country"`
-	RelationshipsLeft  []Relationship `json:"relations_left" gorm:"foreignkey:LeftID"`
-	RelationshipsRight []Relationship `json:"relations_right" gorm:"foreignkey:RightID"`
+	ID            uuid.UUID      `json:"id" sql:"primary key" gorm:"type:uuid"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     *time.Time     ``
+	Name          string         `json:"name"`
+	TypeID        uuid.UUID      `gorm:"type:uuid"`
+	Type          CompanyType    `json:"type" gorm:"foreignkey:TypeID"`
+	SectorID      uuid.UUID      `gorm:"type:uuid"`
+	Sector        Sector         `json:"sector" gorm:"foreignkey:SectorID"`
+	Country       string         `json:"country"`
+	Relationships []Relationship `json:"relations_left"`
 }
 
 func (c *Company) BeforeSave() error {
@@ -39,18 +39,11 @@ func (c *Company) Validate() error {
 }
 
 func (c *Company) EagerLoad() error {
-	session.Model(c).Related(&c.RelationshipsLeft, "RelationshipsLeft")
-	for i := range c.RelationshipsLeft {
-		if err := c.RelationshipsLeft[i].EagerLoad(2); err != nil {
-			return err
-		}
+	rs, err := ListRelationshipsByMember(c.ID)
+	if err != nil {
+		return err
 	}
-	session.Model(c).Related(&c.RelationshipsRight, "RelationshipsRight")
-	for i := range c.RelationshipsRight {
-		if err := c.RelationshipsRight[i].EagerLoad(1); err != nil {
-			return err
-		}
-	}
+	c.Relationships = rs
 	return nil
 }
 
@@ -86,6 +79,10 @@ func ListCompanies(filters map[string]interface{}) ([]Company, error) {
 	if err := session.Where(filters).Find(&items).Error; err != nil {
 		return nil, err
 	}
+	for c := range items {
+		session.Model(items[c]).Related(&items[c].Type, "Type")
+		session.Model(items[c]).Related(&items[c].Sector, "Sector")
+	}
 	return items, nil
 }
 
@@ -93,6 +90,10 @@ func SearchCompanies(query string) ([]Company, error) {
 	var items []Company
 	if err := session.Where("LOWER(name) LIKE ?", "%"+strings.ToLower(query)+"%").Find(&items).Error; err != nil {
 		return nil, err
+	}
+	for c := range items {
+		session.Model(items[c]).Related(&items[c].Type, "Type")
+		session.Model(items[c]).Related(&items[c].Sector, "Sector")
 	}
 	return items, nil
 }
@@ -106,5 +107,7 @@ func GetCompany(id uuid.UUID) (*Company, error) {
 	if err != nil {
 		return nil, err
 	}
+	session.Model(item).Related(&item.Type, "Type")
+	session.Model(item).Related(&item.Sector, "Sector")
 	return &item, nil
 }
