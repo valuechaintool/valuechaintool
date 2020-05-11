@@ -33,6 +33,9 @@ func main() {
 		panic("Error while initializing the Internals module")
 	}
 
+	if os.Getenv("DEBUG") == "True" {
+		session.LogMode(true)
+	}
 	// Router
 	r := mux.NewRouter()
 
