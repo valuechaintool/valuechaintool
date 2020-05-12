@@ -17,7 +17,7 @@ type Relationship struct {
 	LeftCompany  *Company   `json:"left_company" gorm:"foreignkey:LeftID"`
 	RightID      uuid.UUID  `json:"right_id" gorm:"type:uuid"`
 	RightCompany *Company   `json:"right_company" gorm:"foreignkey:RightID"`
-	Quality      string     `json:"quality"`
+	Tier         int        `json:"tier"`
 }
 
 func (r *Relationship) BeforeSave() error {
@@ -35,7 +35,7 @@ func (r *Relationship) Reverse() Relationship {
 		DeletedAt: r.DeletedAt,
 		LeftID:    r.RightID,
 		RightID:   r.LeftID,
-		Quality:   r.Quality,
+		Tier:      r.Tier,
 	}
 }
 
@@ -106,7 +106,7 @@ func GetRelationship(id uuid.UUID) (*Relationship, error) {
 
 func ListRelationshipsByMember(id uuid.UUID) ([]Relationship, error) {
 	var items []Relationship
-	if err := session.Where("left_id = ?").Find(&items).Error; err != nil {
+	if err := session.Where("left_id = ?", id).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	for i := range items {
@@ -115,7 +115,7 @@ func ListRelationshipsByMember(id uuid.UUID) ([]Relationship, error) {
 		}
 	}
 	var rightItems []Relationship
-	if err := session.Where("right_id = ?").Find(&rightItems).Error; err != nil {
+	if err := session.Where("right_id = ?", id).Find(&rightItems).Error; err != nil {
 		return nil, err
 	}
 	for _, r := range rightItems {
