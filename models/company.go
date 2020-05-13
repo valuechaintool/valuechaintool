@@ -2,25 +2,27 @@ package models
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
 
 type Company struct {
-	ID            uuid.UUID      `json:"id" sql:"primary key" gorm:"type:uuid"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	DeletedAt     *time.Time     ``
-	Name          string         `json:"name"`
-	TypeID        uuid.UUID      `gorm:"type:uuid"`
-	Type          CompanyType    `json:"type" gorm:"foreignkey:TypeID"`
-	SectorID      uuid.UUID      `gorm:"type:uuid"`
-	Sector        Sector         `json:"sector" gorm:"foreignkey:SectorID"`
-	Country       string         `json:"country"`
-	Relationships []Relationship `json:"relations_left"`
+	ID            uuid.UUID                 `json:"id" sql:"primary key" gorm:"type:uuid"`
+	CreatedAt     time.Time                 `json:"created_at"`
+	UpdatedAt     time.Time                 `json:"updated_at"`
+	DeletedAt     *time.Time                ``
+	Name          string                    `json:"name"`
+	TypeID        uuid.UUID                 `gorm:"type:uuid"`
+	Type          CompanyType               `json:"type" gorm:"foreignkey:TypeID"`
+	SectorID      uuid.UUID                 `gorm:"type:uuid"`
+	Sector        Sector                    `json:"sector" gorm:"foreignkey:SectorID"`
+	Country       string                    `json:"country"`
+	Relationships map[string][]Relationship `json:"relationships" gorm:"-"`
 }
 
 func (c *Company) BeforeSave() error {
@@ -43,7 +45,25 @@ func (c *Company) EagerLoad() error {
 	if err != nil {
 		return err
 	}
-	c.Relationships = rs
+	cts, err := ListCompanyTypes(nil)
+	if err != nil {
+		return err
+	}
+	c.Relationships = make(map[string][]Relationship)
+	for _, ct := range cts {
+		c.Relationships[ct.ID.String()] = []Relationship{}
+	}
+	for _, r := range rs {
+		c.Relationships[r.RightCompany.TypeID.String()] = append(c.Relationships[r.RightCompany.TypeID.String()], r)
+		spew.Dump(r)
+	}
+	spew.Dump(c)
+	for cti := range c.Relationships {
+		sort.SliceStable(c.Relationships[cti], func(i, j int) bool {
+			return c.Relationships[cti][i].Tier < c.Relationships[cti][j].Tier
+		})
+
+	}
 	return nil
 }
 
