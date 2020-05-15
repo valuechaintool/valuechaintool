@@ -8,8 +8,8 @@
                 {{ range $key, $value := .Companies }}
                     <tr>
                         <td><a href="/companies/{{ .ID }}">{{ .Name }}</a></td>
-                        <td>{{ if eq .Type 1 }}Partner{{ else }}Customer{{ end }}</td>
-                        <td>{{ .Industry }}</td>
+                        <td>{{ .Type.Abbreviation }}</td>
+                        <td>{{ .Sector.Name }}</td>
                     </tr>
                 {{ end }}
                 </table>
