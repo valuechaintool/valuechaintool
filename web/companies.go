@@ -14,11 +14,33 @@ import (
 // CompaniesCreate renders the /companies/new page
 func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
 	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-form.html"))
+	cts, err := models.ListCompanyTypes(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
+	scs, err := models.ListSectors(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	d := struct {
-		PageTitle string
-		Company   models.Company
+		PageTitle    string
+		Company      models.Company
+		CompanyTypes []models.CompanyType
+		Sectors      []models.Sector
 	}{
-		PageTitle: "Add Company",
+		PageTitle:    "Add Company",
+		CompanyTypes: cts,
+		Sectors:      scs,
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
@@ -40,19 +62,29 @@ func CompaniesCreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	company := models.Company{
-		Name:             r.FormValue("name"),
-		Industry:         r.FormValue("industry"),
-		Country:          r.FormValue("country"),
-		SalesManager:     r.FormValue("salesManager"),
-		TechnicalManager: r.FormValue("technicalManager"),
-		Notes:            r.FormValue("notes"),
+	sectorID, err := uuid.Parse(r.FormValue("sector"))
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
 	}
-	switch t := r.FormValue("type"); t {
-	case "partner":
-		company.Type = models.PartnerCompany
-	case "customer":
-		company.Type = models.CustomerCompany
+	typeID, err := uuid.Parse(r.FormValue("type"))
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
+	company := models.Company{
+		Name:     r.FormValue("name"),
+		Country:  r.FormValue("country"),
+		SectorID: sectorID,
+		TypeID:   typeID,
 	}
 	if err := models.NewCompany(&company); err != nil {
 		log.Println(err)
@@ -123,13 +155,24 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	cts, err := models.ListCompanyTypes(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-single.html"))
 	d := struct {
-		PageTitle string
-		Company   models.Company
+		PageTitle    string
+		Company      models.Company
+		CompanyTypes []models.CompanyType
 	}{
-		PageTitle: fmt.Sprintf("Company %s information", (*company).Name),
-		Company:   *company,
+		PageTitle:    fmt.Sprintf("Company %s information", (*company).Name),
+		Company:      *company,
+		CompanyTypes: cts,
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
@@ -162,13 +205,35 @@ func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	cts, err := models.ListCompanyTypes(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
+	scs, err := models.ListSectors(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-form.html"))
 	d := struct {
-		PageTitle string
-		Company   models.Company
+		PageTitle    string
+		Company      models.Company
+		CompanyTypes []models.CompanyType
+		Sectors      []models.Sector
 	}{
-		PageTitle: "Add Company",
-		Company:   *company,
+		PageTitle:    "Add Company",
+		Company:      *company,
+		CompanyTypes: cts,
+		Sectors:      scs,
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
@@ -209,20 +274,28 @@ func CompaniesUpdatePost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
+	sectorID, err := uuid.Parse(r.FormValue("sector"))
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
+	typeID, err := uuid.Parse(r.FormValue("type"))
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 	// Fill the data
 	company.Name = r.FormValue("name")
-	company.Industry = r.FormValue("industry")
-	switch t := r.FormValue("type"); t {
-	case "partner":
-		company.Type = models.PartnerCompany
-	case "customer":
-		company.Type = models.CustomerCompany
-	}
+	company.SectorID = sectorID
+	company.TypeID = typeID
 	company.Country = r.FormValue("country")
-	company.SalesManager = r.FormValue("salesManager")
-	company.TechnicalManager = r.FormValue("technicalManager")
-	company.Notes = r.FormValue("notes")
 
 	if err := company.Save(); err != nil {
 		log.Println(err)
