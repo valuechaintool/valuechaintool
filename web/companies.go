@@ -164,7 +164,20 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-single.html"))
+	funcMap := template.FuncMap{
+		"uts": func(u uuid.UUID) string {
+			return u.String()
+		},
+	}
+	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-single.html")
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	d := struct {
 		PageTitle    string
 		Company      models.Company
