@@ -13,7 +13,6 @@ import (
 
 // CompaniesCreate renders the /companies/new page
 func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-form.html"))
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		log.Println(err)
@@ -41,6 +40,20 @@ func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
 		PageTitle:    "Add Company",
 		CompanyTypes: cts,
 		Sectors:      scs,
+	}
+	funcMap := template.FuncMap{
+		"uts": func(u uuid.UUID) string {
+			return u.String()
+		},
+	}
+	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-form.html")
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
@@ -236,7 +249,6 @@ func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-form.html"))
 	d := struct {
 		PageTitle    string
 		Company      models.Company
@@ -247,6 +259,20 @@ func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
 		Company:      *company,
 		CompanyTypes: cts,
 		Sectors:      scs,
+	}
+	funcMap := template.FuncMap{
+		"uts": func(u uuid.UUID) string {
+			return u.String()
+		},
+	}
+	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-form.html")
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
