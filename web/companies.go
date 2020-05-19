@@ -178,6 +178,19 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	relationships := make(map[string][]models.Relationship)
+	for _, ct := range cts {
+		relationships[ct.ID.String()] = []models.Relationship{}
+	}
+	for _, r := range company.Relationships {
+		relationships[r.RightCompany.TypeID.String()] = append(relationships[r.RightCompany.TypeID.String()], r)
+	}
+	for cti := range relationships {
+		sort.SliceStable(relationships[cti], func(i, j int) bool {
+			return relationships[cti][i].Tier > relationships[cti][j].Tier
+		})
+
+	}
 	cps, err := models.ListCompanies(nil)
 	if err != nil {
 		log.Println(err)
@@ -214,27 +227,20 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	type tier struct {
-		Name  string
-		Color string
-	}
 	d := struct {
-		PageTitle    string
-		Company      models.Company
-		CompanyTypes []models.CompanyType
-		Tiers        map[int]tier
-		Companies    map[string][]models.Company
+		PageTitle     string
+		Company       models.Company
+		CompanyTypes  []models.CompanyType
+		Relationships map[string][]models.Relationship
+		Tiers         []models.Tier
+		Companies     map[string][]models.Company
 	}{
-		PageTitle:    fmt.Sprintf("Company %s information", (*company).Name),
-		Company:      *company,
-		CompanyTypes: cts,
-		Tiers: map[int]tier{
-			0: tier{Name: "None", Color: "000000"},
-			1: tier{Name: "Alliance", Color: "cd7f32"},
-			2: tier{Name: "Premium", Color: "b4b4b4"},
-			3: tier{Name: "Preferred", Color: "af9500"},
-		},
-		Companies: companies,
+		PageTitle:     fmt.Sprintf("Company %s information", (*company).Name),
+		Company:       *company,
+		CompanyTypes:  cts,
+		Relationships: relationships,
+		Tiers:         models.Tiers,
+		Companies:     companies,
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)

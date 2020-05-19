@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/spf13/viper"
 	"github.com/urfave/negroni"
 
 	"github.com/valuechaintool/valuechaintool/models"
@@ -18,11 +19,20 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("starting")
 
+	viper.SetConfigType("yaml")
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Printf("fatal error reading the config file: %s \n", err)
+		return
+	}
+
 	// Init DB
-	if len(os.Getenv("DBC")) == 0 {
+	if len(viper.GetString("dbc")) == 0 {
 		panic("DBC has to be set in the environment")
 	}
-	session, err := gorm.Open("postgres", os.Getenv("DBC"))
+	session, err := gorm.Open("postgres", viper.GetString("dbc"))
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +43,7 @@ func main() {
 		panic("Error while initializing the Internals module")
 	}
 
-	if os.Getenv("DEBUG") == "True" {
+	if viper.GetBool("DEBUG") {
 		session.LogMode(true)
 	}
 	// Router
