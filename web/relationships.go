@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -64,14 +65,19 @@ func RelationshipsCreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	tier, err := strconv.Atoi(r.FormValue("tier"))
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 	relationship := models.Relationship{
-		LeftID:   uuid.MustParse(r.FormValue("left")),
-		LeftPoC:  r.FormValue("left_poc"),
-		RightID:  uuid.MustParse(r.FormValue("right")),
-		RightPoC: r.FormValue("right_poc"),
-		Type:     r.FormValue("type"),
-		Quality:  r.FormValue("quality"),
-		Notes:    r.FormValue("notes"),
+		LeftID:  uuid.MustParse(r.FormValue("left")),
+		RightID: uuid.MustParse(r.FormValue("right")),
+		Tier:    tier,
 	}
 	if err := models.NewRelationship(&relationship); err != nil {
 		log.Println(err)
@@ -81,7 +87,7 @@ func RelationshipsCreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	http.Redirect(w, r, "/companies", 302)
+	http.Redirect(w, r, "/companies/"+r.FormValue("left"), 302)
 }
 
 // RelationshipsDelete responds to /relationships/[ID]/delete url
@@ -105,6 +111,7 @@ func RelationshipsDelete(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	leftId := relationship.LeftID
 	if err := relationship.Delete(); err != nil {
 		log.Println(err)
 		if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -113,5 +120,5 @@ func RelationshipsDelete(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	http.Redirect(w, r, "/companies", 302)
+	http.Redirect(w, r, "/companies/"+leftId.String(), 302)
 }

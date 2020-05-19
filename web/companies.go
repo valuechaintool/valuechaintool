@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sort"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -177,6 +178,28 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	cps, err := models.ListCompanies(nil)
+	if err != nil {
+		log.Println(err)
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
+	companies := make(map[string][]models.Company)
+	for _, ct := range cts {
+		companies[ct.ID.String()] = []models.Company{}
+	}
+	for _, cp := range cps {
+		companies[cp.TypeID.String()] = append(companies[cp.TypeID.String()], cp)
+	}
+	for cti := range companies {
+		sort.SliceStable(companies[cti], func(i, j int) bool {
+			return companies[cti][i].Name < companies[cti][j].Name
+		})
+
+	}
 	funcMap := template.FuncMap{
 		"uts": func(u uuid.UUID) string {
 			return u.String()
@@ -191,14 +214,27 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	type tier struct {
+		Name  string
+		Color string
+	}
 	d := struct {
 		PageTitle    string
 		Company      models.Company
 		CompanyTypes []models.CompanyType
+		Tiers        map[int]tier
+		Companies    map[string][]models.Company
 	}{
 		PageTitle:    fmt.Sprintf("Company %s information", (*company).Name),
 		Company:      *company,
 		CompanyTypes: cts,
+		Tiers: map[int]tier{
+			0: tier{Name: "None", Color: "000000"},
+			1: tier{Name: "Alliance", Color: "cd7f32"},
+			2: tier{Name: "Premium", Color: "b4b4b4"},
+			3: tier{Name: "Preferred", Color: "af9500"},
+		},
+		Companies: companies,
 	}
 	if err := t.Execute(w, d); err != nil {
 		log.Println(err)
