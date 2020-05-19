@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
@@ -55,9 +54,7 @@ func (c *Company) EagerLoad() error {
 	}
 	for _, r := range rs {
 		c.Relationships[r.RightCompany.TypeID.String()] = append(c.Relationships[r.RightCompany.TypeID.String()], r)
-		spew.Dump(r)
 	}
-	spew.Dump(c)
 	for cti := range c.Relationships {
 		sort.SliceStable(c.Relationships[cti], func(i, j int) bool {
 			return c.Relationships[cti][i].Tier < c.Relationships[cti][j].Tier
