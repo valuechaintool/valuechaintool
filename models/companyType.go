@@ -1,67 +1,49 @@
 package models
 
 import (
-	"fmt"
-	"time"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 )
 
+var companyTypes []CompanyType
+
 type CompanyType struct {
-	ID           uuid.UUID  `json:"id" sql:"primary key" gorm:"type:uuid"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	DeletedAt    *time.Time ``
-	Name         string     `json:"name"`
-	Abbreviation string     `json:"abbreviation"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Abbreviation string    `json:"abbreviation"`
 }
 
-func (t *CompanyType) BeforeSave() error {
-	if err := t.Validate(); err != nil {
+func UnmarshalCompanyTypes() error {
+	var cts []map[string]interface{}
+	if err := viper.UnmarshalKey("companyTypes", &cts); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (t *CompanyType) Conflicts() bool {
-	return false
-}
-
-func (t *CompanyType) Validate() error {
-	return nil
-}
-
-func (t *CompanyType) Save() error {
-	return session.Save(t).Error
-}
-
-func (t *CompanyType) Delete() error {
-	if t.ID == uuid.Nil {
-		return fmt.Errorf("missing Primary Key")
-	}
-	return session.Delete(t).Error
-}
-
-func NewCompanyType(t *CompanyType) error {
-	if t.ID == uuid.Nil {
-		var err error
-		if t.ID, err = uuid.NewRandom(); err != nil {
+	for _, ct := range cts {
+		id, err := uuid.Parse(ct["id"].(string))
+		if err != nil {
 			return err
 		}
-	}
-	if t.Conflicts() {
-		return fmt.Errorf("the item already exists")
-	}
-	if err := session.Create(&t).Error; err != nil {
-		return err
+		companyType := CompanyType{
+			ID:           id,
+			Name:         ct["name"].(string),
+			Abbreviation: ct["abbreviation"].(string),
+		}
+		companyTypes = append(companyTypes, companyType)
 	}
 	return nil
 }
 
 func ListCompanyTypes(filters map[string]interface{}) ([]CompanyType, error) {
-	var items []CompanyType
-	if err := session.Where(filters).Find(&items).Error; err != nil {
-		return nil, err
+	return companyTypes, nil
+}
+
+func GetCompanyType(id uuid.UUID) (*CompanyType, error) {
+	for _, companyType := range companyTypes {
+		if companyType.ID == id {
+			return &companyType, nil
+		}
 	}
-	return items, nil
+	return nil, errors.New("companyType not found")
 }

@@ -16,9 +16,9 @@ type Company struct {
 	DeletedAt     *time.Time     ``
 	Name          string         `json:"name"`
 	TypeID        uuid.UUID      `gorm:"type:uuid"`
-	Type          CompanyType    `json:"type" gorm:"foreignkey:TypeID"`
+	Type          CompanyType    `json:"type"`
 	SectorID      uuid.UUID      `gorm:"type:uuid"`
-	Sector        Sector         `json:"sector" gorm:"foreignkey:SectorID"`
+	Sector        Sector         `json:"sector"`
 	Country       string         `json:"country"`
 	Relationships []Relationship `json:"relationships" gorm:"-"`
 }
@@ -77,8 +77,16 @@ func ListCompanies(filters map[string]interface{}) ([]Company, error) {
 		return nil, err
 	}
 	for c := range items {
-		session.Model(items[c]).Related(&items[c].Type, "Type")
-		session.Model(items[c]).Related(&items[c].Sector, "Sector")
+		companyType, err := GetCompanyType(items[c].TypeID)
+		if err != nil {
+			return nil, err
+		}
+		items[c].Type = *companyType
+		sector, err := GetSector(items[c].SectorID)
+		if err != nil {
+			return nil, err
+		}
+		items[c].Sector = *sector
 	}
 	return items, nil
 }
@@ -89,8 +97,16 @@ func SearchCompanies(query string) ([]Company, error) {
 		return nil, err
 	}
 	for c := range items {
-		session.Model(items[c]).Related(&items[c].Type, "Type")
-		session.Model(items[c]).Related(&items[c].Sector, "Sector")
+		companyType, err := GetCompanyType(items[c].TypeID)
+		if err != nil {
+			return nil, err
+		}
+		items[c].Type = *companyType
+		sector, err := GetSector(items[c].SectorID)
+		if err != nil {
+			return nil, err
+		}
+		items[c].Sector = *sector
 	}
 	return items, nil
 }
@@ -104,7 +120,15 @@ func GetCompany(id uuid.UUID) (*Company, error) {
 	if err != nil {
 		return nil, err
 	}
-	session.Model(item).Related(&item.Type, "Type")
-	session.Model(item).Related(&item.Sector, "Sector")
+	companyType, err := GetCompanyType(item.TypeID)
+	if err != nil {
+		return nil, err
+	}
+	item.Type = *companyType
+	sector, err := GetSector(item.SectorID)
+	if err != nil {
+		return nil, err
+	}
+	item.Sector = *sector
 	return &item, nil
 }

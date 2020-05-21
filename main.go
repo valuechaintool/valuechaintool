@@ -40,7 +40,8 @@ func main() {
 	session.DB().SetMaxOpenConns(5)
 
 	if err := models.Init(session); err != nil {
-		panic("Error while initializing the Internals module")
+		fmt.Printf("fatal error while initializing the internal modules: %s \n", err)
+		return
 	}
 
 	if viper.GetBool("DEBUG") {

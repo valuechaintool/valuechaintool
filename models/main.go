@@ -7,18 +7,18 @@ import (
 
 var session *gorm.DB
 
-var Tiers []Tier
-
 func Init(dbSession *gorm.DB) error {
 	session = dbSession
 	session.AutoMigrate(&Company{})
-	session.AutoMigrate(&CompanyType{})
 	session.AutoMigrate(&Relationship{})
-	session.AutoMigrate(&Sector{})
-	err := viper.UnmarshalKey("tiers", &Tiers)
-	if err != nil {
+	if err := UnmarshalCompanyTypes(); err != nil {
 		return err
 	}
-
+	if err := UnmarshalSectors(); err != nil {
+		return err
+	}
+	if err := viper.UnmarshalKey("tiers", &tiers); err != nil {
+		return err
+	}
 	return nil
 }

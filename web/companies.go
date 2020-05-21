@@ -239,7 +239,7 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		Company:       *company,
 		CompanyTypes:  cts,
 		Relationships: relationships,
-		Tiers:         models.Tiers,
+		Tiers:         models.ListTiers(),
 		Companies:     companies,
 	}
 	if err := t.Execute(w, d); err != nil {

@@ -1,66 +1,47 @@
 package models
 
 import (
-	"fmt"
-	"time"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 )
 
+var sectors []Sector
+
 type Sector struct {
-	ID        uuid.UUID  `json:"id" sql:"primary key" gorm:"type:uuid"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time ``
-	Name      string     `json:"name"`
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
-func (s *Sector) BeforeSave() error {
-	if err := s.Validate(); err != nil {
+func UnmarshalSectors() error {
+	var ss []map[string]interface{}
+	if err := viper.UnmarshalKey("sectors", &ss); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (s *Sector) Conflicts() bool {
-	return false
-}
-
-func (s *Sector) Validate() error {
-	return nil
-}
-
-func (s *Sector) Save() error {
-	return session.Save(s).Error
-}
-
-func (s *Sector) Delete() error {
-	if s.ID == uuid.Nil {
-		return fmt.Errorf("missing Primary Key")
-	}
-	return session.Delete(s).Error
-}
-
-func NewSector(s *Sector) error {
-	if s.ID == uuid.Nil {
-		var err error
-		if s.ID, err = uuid.NewRandom(); err != nil {
+	for _, s := range ss {
+		id, err := uuid.Parse(s["id"].(string))
+		if err != nil {
 			return err
 		}
-	}
-	if s.Conflicts() {
-		return fmt.Errorf("the item already exists")
-	}
-	if err := session.Create(&s).Error; err != nil {
-		return err
+		sector := Sector{
+			ID:   id,
+			Name: s["name"].(string),
+		}
+		sectors = append(sectors, sector)
 	}
 	return nil
 }
 
 func ListSectors(filters map[string]interface{}) ([]Sector, error) {
-	var items []Sector
-	if err := session.Where(filters).Find(&items).Error; err != nil {
-		return nil, err
+	return sectors, nil
+}
+
+func GetSector(id uuid.UUID) (*Sector, error) {
+	for _, sector := range sectors {
+		if sector.ID == id {
+			return &sector, nil
+		}
 	}
-	return items, nil
+	return nil, errors.New("sector not found")
 }
