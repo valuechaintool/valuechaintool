@@ -9,6 +9,7 @@ var session *gorm.DB
 
 func Init(dbSession *gorm.DB) error {
 	session = dbSession
+	session.AutoMigrate(&User{})
 	session.AutoMigrate(&Company{})
 	session.AutoMigrate(&Relationship{})
 	if err := UnmarshalCompanyTypes(); err != nil {

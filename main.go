@@ -5,12 +5,14 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/spf13/viper"
 	"github.com/urfave/negroni"
 
+	"github.com/valuechaintool/valuechaintool/api"
 	"github.com/valuechaintool/valuechaintool/models"
 	"github.com/valuechaintool/valuechaintool/web"
 )
@@ -48,6 +50,11 @@ func main() {
 		session.LogMode(true)
 	}
 	// Router
+	router := gin.Default()
+	router.POST("/api/v1/login", api.Login)
+	router.POST("/api/v1/register", api.Register)
+	log.Fatal(router.Run(":8080"))
+
 	r := mux.NewRouter()
 
 	// Webpages
