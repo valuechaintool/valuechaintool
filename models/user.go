@@ -33,7 +33,7 @@ func (u *User) Conflicts() bool {
 
 func (u *User) Validate() error {
 	u.Username = strings.ToLower(u.Username)
-	if matched, _ := regexp.MatchString(`^[\w\-\.]{1,63}$`, u.Username); matched == false {
+	if matched, _ := regexp.MatchString(`^[\w\-\.]{1,63}$`, u.Username); !matched {
 		return errors.New("username is not valid")
 	}
 	if len(u.Email) == 0 {
