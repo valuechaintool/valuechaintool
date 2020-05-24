@@ -5,16 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/valuechaintool/valuechaintool/models"
+	"github.com/valuechaintool/valuechaintool/utils"
 )
 
 func Register(c *gin.Context) {
 	var u models.User
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid JSON provided")
+		c.JSON(utils.Error(http.StatusUnprocessableEntity, "invalid JSON provided"))
 		return
 	}
 	if err := models.NewUser(&u); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
+		c.JSON(utils.Error(http.StatusUnprocessableEntity, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, u)

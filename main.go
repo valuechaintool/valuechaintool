@@ -55,6 +55,13 @@ func main() {
 	router.POST("/api/v1/login", api.Login)
 	router.POST("/api/v1/register", api.Register)
 	router.GET("/api/v1/user", middleware.Auth(), api.User)
+	router.GET("/api/v1/users", middleware.Auth(), api.UsersList)
+	router.GET("/api/v1/users/:user", middleware.Auth(), api.UsersRead)
+	router.PATCH("/api/v1/users/:user", middleware.Auth(), api.UsersUpdate)
+	router.DELETE("/api/v1/users/:user", middleware.Auth(), api.UsersDelete)
+	router.POST("/api/v1/users/:user/permissions", middleware.Auth(), api.PermissionsCreate)
+	router.GET("/api/v1/users/:user/permissions", middleware.Auth(), api.PermissionsList)
+	router.DELETE("/api/v1/users/:user/permissions/:permission", middleware.Auth(), api.PermissionsDelete)
 	log.Fatal(router.Run(":8080"))
 
 	r := mux.NewRouter()

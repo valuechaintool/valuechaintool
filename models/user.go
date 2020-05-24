@@ -17,11 +17,11 @@ type User struct {
 	ID               uuid.UUID  `json:"id"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
-	DeletedAt        *time.Time ``
+	DeletedAt        *time.Time `json:"-"`
 	Username         string     `json:"username"`
 	RealName         string     `json:"real_name"`
 	Email            string     `json:"email"`
-	Password         string     ``
+	Password         string     `json:"-"`
 	PasswordStrength int        `json:"password_strength"`
 	LastLoginOn      time.Time  `json:"last_login_on"`
 	LastLoginFrom    net.IP     `json:"last_login_from"`
@@ -33,7 +33,7 @@ func (u *User) Conflicts() bool {
 
 func (u *User) Validate() error {
 	u.Username = strings.ToLower(u.Username)
-	if matched, _ := regexp.MatchString(`^[\w\-\.]{8,63}$`, u.Username); matched == false {
+	if matched, _ := regexp.MatchString(`^[\w\-\.]{1,63}$`, u.Username); matched == false {
 		return errors.New("username is not valid")
 	}
 	if len(u.Email) == 0 {
@@ -51,6 +51,16 @@ func (u *User) EagerLoad() error {
 
 func (u *User) Save() error {
 	return session.Save(u).Error
+}
+
+func (u *User) Update(items map[string]interface{}) error {
+	if err := session.Model(&u).Updates(items).Error; err != nil {
+		return err
+	}
+
+	item, err := GetUser(u.ID)
+	*u = *item
+	return err
 }
 
 func (u *User) Delete() error {

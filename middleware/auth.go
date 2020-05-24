@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
+	"github.com/valuechaintool/valuechaintool/models"
 )
 
 func Auth() gin.HandlerFunc {
@@ -20,6 +21,13 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 		c.Set("userID", *userID)
+		capabilities, err := models.ListCapabilitiesByUser(*userID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, err.Error())
+			c.Abort()
+			return
+		}
+		c.Set("capabilities", capabilities)
 		c.Next()
 	}
 }
