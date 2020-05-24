@@ -13,6 +13,7 @@ import (
 	"github.com/urfave/negroni"
 
 	"github.com/valuechaintool/valuechaintool/api"
+	"github.com/valuechaintool/valuechaintool/middleware"
 	"github.com/valuechaintool/valuechaintool/models"
 	"github.com/valuechaintool/valuechaintool/web"
 )
@@ -53,6 +54,7 @@ func main() {
 	router := gin.Default()
 	router.POST("/api/v1/login", api.Login)
 	router.POST("/api/v1/register", api.Register)
+	router.GET("/api/v1/user", middleware.Auth(), api.User)
 	log.Fatal(router.Run(":8080"))
 
 	r := mux.NewRouter()

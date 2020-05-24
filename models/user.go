@@ -21,7 +21,7 @@ type User struct {
 	Username         string     `json:"username"`
 	RealName         string     `json:"real_name"`
 	Email            string     `json:"email"`
-	Password         string     `json:"password"`
+	Password         string     ``
 	PasswordStrength int        `json:"password_strength"`
 	LastLoginOn      time.Time  `json:"last_login_on"`
 	LastLoginFrom    net.IP     `json:"last_login_from"`
