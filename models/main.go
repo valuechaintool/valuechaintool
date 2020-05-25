@@ -14,6 +14,9 @@ func Init(dbSession *gorm.DB) error {
 	session.AutoMigrate(&User{})
 	session.AutoMigrate(&Permission{})
 	session.AutoMigrate(&Session{})
+	if err := rootUserInit(); err != nil {
+		return err
+	}
 
 	// Application bits
 	session.AutoMigrate(&Company{})
