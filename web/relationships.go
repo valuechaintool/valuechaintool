@@ -35,7 +35,7 @@ func RelationshipsCreate(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	t := template.Must(template.ParseFiles("web/layout.html", "web/relationships-form.html"))
+	t := template.Must(template.ParseFiles("static/tpl/layout.html", "static/tpl/relationships-form.html"))
 	d := struct {
 		PageTitle    string
 		Companies    []models.Company

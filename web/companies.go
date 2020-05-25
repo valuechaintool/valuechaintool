@@ -47,7 +47,7 @@ func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
 			return u.String()
 		},
 	}
-	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-form.html")
+	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-form.html")
 	if err != nil {
 		log.Println(err)
 		if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -122,7 +122,7 @@ func CompaniesList(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	t := template.Must(template.ParseFiles("web/layout.html", "web/companies-list.html"))
+	t := template.Must(template.ParseFiles("static/tpl/layout.html", "static/tpl/companies-list.html"))
 	d := struct {
 		PageTitle string
 		Companies []models.Company
@@ -218,7 +218,7 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 			return u.String()
 		},
 	}
-	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-single.html")
+	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-single.html")
 	if err != nil {
 		log.Println(err)
 		if _, err := w.Write([]byte(err.Error())); err != nil {
@@ -307,7 +307,7 @@ func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
 			return u.String()
 		},
 	}
-	t, err := template.Must(template.ParseFiles("web/layout.html")).Funcs(funcMap).ParseFiles("web/companies-form.html")
+	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-form.html")
 	if err != nil {
 		log.Println(err)
 		if _, err := w.Write([]byte(err.Error())); err != nil {

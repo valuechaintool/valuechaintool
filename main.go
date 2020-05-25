@@ -64,12 +64,8 @@ func main() {
 	r.HandleFunc("/relationships/{id:[a-z0-9/-]{36}}/delete", web.RelationshipsDelete).Methods("GET")
 
 	// Static contents
-	css := http.StripPrefix("/css/", http.FileServer(http.Dir("./css/")))
-	r.PathPrefix("/css/").Handler(css)
-	js := http.StripPrefix("/js/", http.FileServer(http.Dir("./js/")))
-	r.PathPrefix("/js/").Handler(js)
-	wf := http.StripPrefix("/webfonts/", http.FileServer(http.Dir("./webfonts/")))
-	r.PathPrefix("/webfonts/").Handler(wf)
+	static := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	r.PathPrefix("/static/").Handler(static)
 
 	// Health
 	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
