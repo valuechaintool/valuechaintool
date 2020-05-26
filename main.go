@@ -48,10 +48,15 @@ func main() {
 	}
 	// Router
 	router := gin.Default()
+	router.Use(gin.Logger())
 	router.HTMLRender = web.LoadTemplates("static/tpl")
 	router.Use(static.Serve("/static", static.LocalFile("static", false)))
 
-	// Webpages
+	// Authentication bits
+	router.GET("/login", web.Login)
+	router.POST("/login", web.LoginPost)
+
+	// Application bits
 	router.GET("/", web.Home)
 	router.GET("/companies", web.CompaniesList)
 	router.GET("/companies/:id", web.CompaniesRead)
