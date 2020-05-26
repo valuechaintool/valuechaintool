@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -52,6 +54,11 @@ func main() {
 	}
 	// Router
 	router := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	router.Use(cors.New(config))
+	router.Use(static.Serve("/", static.LocalFile("./ui/build", true)))
+	router.Use(static.Serve("/login", static.LocalFile("./ui/build", true)))
 	router.POST("/api/v1/login", api.Login)
 	router.POST("/api/v1/register", api.Register)
 	router.GET("/api/v1/user", middleware.Auth(), api.User)
