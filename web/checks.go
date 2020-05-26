@@ -7,9 +7,9 @@ import (
 )
 
 func Healthz(c *gin.Context) {
-	c.HTML(http.StatusOK, "ok", nil)
+	c.String(http.StatusOK, "ok")
 }
 
 func Readiness(c *gin.Context) {
-	c.HTML(http.StatusOK, "ok", nil)
+	c.String(http.StatusOK, "ok")
 }
