@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -16,6 +17,13 @@ type Session struct {
 	UserID     uuid.UUID `json:"user_id"`
 	Creation   time.Time `json:"creation"`
 	Expiration time.Time `json:"expiration"`
+}
+
+func (s *Session) Delete() error {
+	if len(s.ID) == 0 {
+		return fmt.Errorf("missing Primary Key")
+	}
+	return session.Delete(s).Error
 }
 
 func NewSession(userID uuid.UUID) (*Session, error) {

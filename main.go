@@ -48,25 +48,27 @@ func main() {
 	}
 	// Router
 	router := gin.Default()
-	router.Use(gin.Logger())
 	router.HTMLRender = web.LoadTemplates("static/tpl")
 	router.Use(static.Serve("/static", static.LocalFile("static", false)))
 
 	// Authentication bits
 	router.GET("/login", web.Login)
 	router.POST("/login", web.LoginPost)
+	router.GET("/logout", web.MiddlewareAuth(), web.Logout)
 
 	// Application bits
-	router.GET("/", web.Home)
-	router.GET("/companies", web.CompaniesList)
-	router.GET("/companies/:id", web.CompaniesRead)
-	router.GET("/companies/:id/new", web.CompaniesCreate)
-	router.POST("/companies/:id/new", web.CompaniesCreatePost)
-	router.GET("/companies/:id/edit", web.CompaniesUpdate)
-	router.POST("/companies/:id/edit", web.CompaniesUpdatePost)
-	router.GET("/companies/:id/delete", web.CompaniesDelete)
-	router.POST("/companies/:id/relationships", web.RelationshipsCreatePost)
-	router.GET("/companies/:id/relationships/:rid/delete", web.RelationshipsDelete)
+	r := router.Group("/")
+	r.Use(web.MiddlewareAuth())
+	r.GET("/", web.Home)
+	r.GET("/companies", web.CompaniesList)
+	r.GET("/companies/:id", web.CompaniesRead)
+	r.GET("/companies/:id/new", web.CompaniesCreate)
+	r.POST("/companies/:id/new", web.CompaniesCreatePost)
+	r.GET("/companies/:id/edit", web.CompaniesUpdate)
+	r.POST("/companies/:id/edit", web.CompaniesUpdatePost)
+	r.GET("/companies/:id/delete", web.CompaniesDelete)
+	r.POST("/companies/:id/relationships", web.RelationshipsCreatePost)
+	r.GET("/companies/:id/relationships/:rid/delete", web.RelationshipsDelete)
 
 	// Health
 	router.GET("/healthz", web.Healthz)
