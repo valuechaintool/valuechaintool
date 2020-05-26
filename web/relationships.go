@@ -15,14 +15,17 @@ func RelationshipsCreatePost(c *gin.Context) {
 	leftID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	rightID, err := uuid.Parse(c.PostForm("right"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	tier, err := strconv.Atoi(c.PostForm("tier"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	relationship := models.Relationship{
 		LeftID:  leftID,
@@ -31,6 +34,7 @@ func RelationshipsCreatePost(c *gin.Context) {
 	}
 	if err := models.NewRelationship(&relationship); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", leftID.String()))
 }
@@ -40,13 +44,16 @@ func RelationshipsDelete(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("rid"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	relationship, err := models.GetRelationship(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	if err := relationship.Delete(); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", c.Param("id")))
 }

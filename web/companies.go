@@ -15,10 +15,12 @@ func CompaniesCreate(c *gin.Context) {
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	scs, err := models.ListSectors(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	d := struct {
 		PageTitle    string
@@ -38,10 +40,12 @@ func CompaniesCreatePost(c *gin.Context) {
 	sectorID, err := uuid.Parse(c.PostForm("sector"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	typeID, err := uuid.Parse(c.PostForm("type"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	company := models.Company{
 		Name:     c.PostForm("name"),
@@ -51,6 +55,7 @@ func CompaniesCreatePost(c *gin.Context) {
 	}
 	if err := models.NewCompany(&company); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	c.Redirect(http.StatusFound, "/companies")
 }
@@ -60,6 +65,7 @@ func CompaniesList(c *gin.Context) {
 	companies, err := models.ListCompanies(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	d := struct {
 		PageTitle string
@@ -76,17 +82,21 @@ func CompaniesRead(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
 	}
 	if err := company.EagerLoad(); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	relationships := make(map[string][]models.Relationship)
 	for _, ct := range cts {
@@ -104,6 +114,7 @@ func CompaniesRead(c *gin.Context) {
 	cps, err := models.ListCompanies(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	companies := make(map[string][]models.Company)
 	for _, ct := range cts {
@@ -141,18 +152,22 @@ func CompaniesUpdate(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
 	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	scs, err := models.ListSectors(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	d := struct {
 		PageTitle    string
@@ -173,18 +188,22 @@ func CompaniesUpdatePost(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
 	}
 	sectorID, err := uuid.Parse(c.PostForm("sector"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	typeID, err := uuid.Parse(c.PostForm("type"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	// Fill the data
 	company.Name = c.PostForm("name")
@@ -194,6 +213,7 @@ func CompaniesUpdatePost(c *gin.Context) {
 
 	if err := company.Save(); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", id.String()))
 }
@@ -203,13 +223,16 @@ func CompaniesDelete(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
 	}
 	if err := company.Delete(); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 	c.Redirect(http.StatusFound, "/companies")
 }
