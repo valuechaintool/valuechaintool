@@ -40,7 +40,7 @@ func (c *Company) Validate() error {
 
 func (c *Company) EagerLoad() error {
 	var err error
-	c.Relationships, err = ListRelationshipsByMember(c.ID)
+	c.Relationships, err = GetRelationshipsByMember(c.ID, true)
 	return err
 }
 
@@ -52,7 +52,35 @@ func (c *Company) Delete() error {
 	if c.ID == uuid.Nil {
 		return fmt.Errorf("missing Primary Key")
 	}
-	return session.Delete(c).Error
+	rs, err := GetRelationshipsByMember(c.ID, false)
+	if err != nil {
+		return fmt.Errorf("error while loading relationships: %s", err)
+	}
+
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return err
+	}
+
+	for _, r := range rs {
+		if err := tx.Delete(r).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Delete(c).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func NewCompany(c *Company) error {
