@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/spf13/viper"
-	"github.com/urfave/negroni"
 
 	"github.com/valuechaintool/valuechaintool/models"
 	"github.com/valuechaintool/valuechaintool/web"
@@ -48,47 +47,28 @@ func main() {
 		session.LogMode(true)
 	}
 	// Router
-	r := mux.NewRouter()
+	router := gin.Default()
+	router.HTMLRender = web.LoadTemplates("static/tpl")
+	router.Use(static.Serve("/static", static.LocalFile("static", false)))
 
 	// Webpages
-	r.HandleFunc("/", web.Home).Methods("GET")
-	r.HandleFunc("/companies", web.CompaniesList).Methods("GET")
-	r.HandleFunc("/companies/new", web.CompaniesCreate).Methods("GET")
-	r.HandleFunc("/companies/new", web.CompaniesCreatePost).Methods("POST")
-	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}", web.CompaniesRead).Methods("GET")
-	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/edit", web.CompaniesUpdate).Methods("GET")
-	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/edit", web.CompaniesUpdatePost).Methods("POST")
-	r.HandleFunc("/companies/{id:[a-z0-9/-]{36}}/delete", web.CompaniesDelete).Methods("GET")
-	r.HandleFunc("/relationships/new", web.RelationshipsCreate).Methods("GET")
-	r.HandleFunc("/relationships/new", web.RelationshipsCreatePost).Methods("POST")
-	r.HandleFunc("/relationships/{id:[a-z0-9/-]{36}}/delete", web.RelationshipsDelete).Methods("GET")
-
-	// Static contents
-	static := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
-	r.PathPrefix("/static/").Handler(static)
+	router.GET("/", web.Home)
+	router.GET("/company/new", web.CompaniesCreate)
+	router.POST("/company/new", web.CompaniesCreatePost)
+	router.GET("/companies", web.CompaniesList)
+	router.GET("/companies/:id", web.CompaniesRead)
+	router.GET("/companies/:id/edit", web.CompaniesUpdate)
+	router.POST("/companies/:id/edit", web.CompaniesUpdatePost)
+	router.GET("/companies/:id/delete", web.CompaniesDelete)
+	router.POST("/companies/:id/relationships", web.RelationshipsCreatePost)
+	router.GET("/companies/:id/relationships/:rid/delete", web.RelationshipsDelete)
 
 	// Health
-	r.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("ok")); err != nil {
-			log.Println(err)
-			return
-		}
-	}).Methods("GET")
-	r.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("ok")); err != nil {
-			log.Println(err)
-			return
-		}
-	}).Methods("GET")
-
-	// Negroni
-	n := negroni.New()
-	n.Use(negroni.NewRecovery())
-	n.Use(negroni.NewLogger())
-	n.UseHandler(r)
+	router.GET("/healthz", web.Healthz)
+	router.GET("/readiness", web.Readiness)
 
 	log.Println("ready to serve")
-	if err := http.ListenAndServe(":10080", n); err != nil {
+	if err := router.Run(":10080"); err != nil {
 		log.Println(err)
 	}
 }

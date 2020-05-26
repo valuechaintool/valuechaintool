@@ -2,35 +2,23 @@ package web
 
 import (
 	"fmt"
-	"html/template"
-	"log"
 	"net/http"
 	"sort"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"github.com/valuechaintool/valuechaintool/models"
 )
 
 // CompaniesCreate renders the /companies/new page
-func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
+func CompaniesCreate(c *gin.Context) {
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	scs, err := models.ListSectors(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	d := struct {
 		PageTitle    string
@@ -42,87 +30,37 @@ func CompaniesCreate(w http.ResponseWriter, r *http.Request) {
 		CompanyTypes: cts,
 		Sectors:      scs,
 	}
-	funcMap := template.FuncMap{
-		"uts": func(u uuid.UUID) string {
-			return u.String()
-		},
-	}
-	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-form.html")
-	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
-	if err := t.Execute(w, d); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
+	c.HTML(http.StatusOK, "companies-form.html", d)
 }
 
 // CompaniesCreatePost parses the form from /companies/new page
-func CompaniesCreatePost(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
-	sectorID, err := uuid.Parse(r.FormValue("sector"))
+func CompaniesCreatePost(c *gin.Context) {
+	sectorID, err := uuid.Parse(c.PostForm("sector"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
-	typeID, err := uuid.Parse(r.FormValue("type"))
+	typeID, err := uuid.Parse(c.PostForm("type"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	company := models.Company{
-		Name:     r.FormValue("name"),
-		Country:  r.FormValue("country"),
+		Name:     c.PostForm("name"),
+		Country:  c.PostForm("country"),
 		SectorID: sectorID,
 		TypeID:   typeID,
 	}
 	if err := models.NewCompany(&company); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	http.Redirect(w, r, "/companies", 302)
+	c.Redirect(http.StatusFound, "/companies")
 }
 
 // CompaniesList renders the /companies page
-func CompaniesList(w http.ResponseWriter, r *http.Request) {
+func CompaniesList(c *gin.Context) {
 	companies, err := models.ListCompanies(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	t := template.Must(template.ParseFiles("static/tpl/layout.html", "static/tpl/companies-list.html"))
 	d := struct {
 		PageTitle string
 		Companies []models.Company
@@ -130,53 +68,25 @@ func CompaniesList(w http.ResponseWriter, r *http.Request) {
 		PageTitle: "HomePage",
 		Companies: companies,
 	}
-	if err := t.Execute(w, d); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
+	c.HTML(http.StatusOK, "companies-list.html", d)
 }
 
 // CompaniesRead renders the /companies/[ID] page
-func CompaniesRead(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := uuid.Parse(vars["id"])
+func CompaniesRead(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusNotFound, err)
 	}
 	if err := company.EagerLoad(); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	relationships := make(map[string][]models.Relationship)
 	for _, ct := range cts {
@@ -193,12 +103,7 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 	}
 	cps, err := models.ListCompanies(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	companies := make(map[string][]models.Company)
 	for _, ct := range cts {
@@ -212,20 +117,6 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 			return companies[cti][i].Name < companies[cti][j].Name
 		})
 
-	}
-	funcMap := template.FuncMap{
-		"uts": func(u uuid.UUID) string {
-			return u.String()
-		},
-	}
-	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-single.html")
-	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
 	}
 	d := struct {
 		PageTitle     string
@@ -242,54 +133,26 @@ func CompaniesRead(w http.ResponseWriter, r *http.Request) {
 		Tiers:         models.ListTiers(),
 		Companies:     companies,
 	}
-	if err := t.Execute(w, d); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
+	c.HTML(http.StatusOK, "companies-single.html", d)
 }
 
 // CompaniesUpdate renders the /companies/[ID]/edit page
-func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := uuid.Parse(vars["id"])
+func CompaniesUpdate(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusNotFound, err)
 	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	scs, err := models.ListSectors(nil)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
 	d := struct {
 		PageTitle    string
@@ -302,121 +165,51 @@ func CompaniesUpdate(w http.ResponseWriter, r *http.Request) {
 		CompanyTypes: cts,
 		Sectors:      scs,
 	}
-	funcMap := template.FuncMap{
-		"uts": func(u uuid.UUID) string {
-			return u.String()
-		},
-	}
-	t, err := template.Must(template.ParseFiles("static/tpl/layout.html")).Funcs(funcMap).ParseFiles("static/tpl/companies-form.html")
-	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
-	if err := t.Execute(w, d); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
+	c.HTML(http.StatusOK, "companies-form.html", d)
 }
 
 // CompaniesUpdatePost parses the form from /companies/[ID]/edit page
-func CompaniesUpdatePost(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := uuid.Parse(vars["id"])
+func CompaniesUpdatePost(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusNotFound, err)
 	}
-	if err := r.ParseForm(); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
-	}
-	sectorID, err := uuid.Parse(r.FormValue("sector"))
+	sectorID, err := uuid.Parse(c.PostForm("sector"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
-	typeID, err := uuid.Parse(r.FormValue("type"))
+	typeID, err := uuid.Parse(c.PostForm("type"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	// Fill the data
-	company.Name = r.FormValue("name")
+	company.Name = c.PostForm("name")
 	company.SectorID = sectorID
 	company.TypeID = typeID
-	company.Country = r.FormValue("country")
+	company.Country = c.PostForm("country")
 
 	if err := company.Save(); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	http.Redirect(w, r, "/companies", 302)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", id.String()))
 }
 
 // CompaniesDelete responds to /companies/[ID]/delete url
-func CompaniesDelete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := uuid.Parse(vars["id"])
+func CompaniesDelete(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 	}
 	company, err := models.GetCompany(id)
 	if err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusNotFound, err)
 	}
 	if err := company.Delete(); err != nil {
-		log.Println(err)
-		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
-			return
-		}
-		return
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 	}
-	http.Redirect(w, r, "/companies", 302)
+	c.Redirect(http.StatusFound, "/companies")
 }
