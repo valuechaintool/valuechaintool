@@ -53,10 +53,10 @@ func main() {
 
 	// Webpages
 	router.GET("/", web.Home)
-	router.GET("/company/new", web.CompaniesCreate)
-	router.POST("/company/new", web.CompaniesCreatePost)
 	router.GET("/companies", web.CompaniesList)
 	router.GET("/companies/:id", web.CompaniesRead)
+	router.GET("/companies/:id/new", web.CompaniesCreate)
+	router.POST("/companies/:id/new", web.CompaniesCreatePost)
 	router.GET("/companies/:id/edit", web.CompaniesUpdate)
 	router.POST("/companies/:id/edit", web.CompaniesUpdatePost)
 	router.GET("/companies/:id/delete", web.CompaniesDelete)
