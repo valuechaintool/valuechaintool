@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,6 +29,13 @@ type User struct {
 }
 
 func (u *User) Conflicts() bool {
+	var count int
+	if err := session.Model(&User{}).Where("username = ?", u.Username).Count(&count).Error; err != nil {
+		return true
+	}
+	if count > 0 {
+		return true
+	}
 	return false
 }
 
@@ -90,6 +98,20 @@ func NewUser(u *User) error {
 	u.Password = string(hashedPassword)
 	if err := session.Create(&u).Error; err != nil {
 		return err
+	}
+	for _, r := range viper.GetStringSlice("defaultRoles") {
+		roleID, err := uuid.Parse(r)
+		if err != nil {
+			return err
+		}
+		p := Permission{
+			UserID:     u.ID,
+			ResourceID: WildCardResource,
+			RoleID:     roleID,
+		}
+		if err := NewPermission(&p); err != nil {
+			return err
+		}
 	}
 	return nil
 }

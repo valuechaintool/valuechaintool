@@ -55,6 +55,8 @@ func main() {
 	router.GET("/login", web.Login)
 	router.POST("/login", web.LoginPost)
 	router.GET("/logout", web.MiddlewareAuth(), web.Logout)
+	router.GET("/register", web.Register)
+	router.POST("/register", web.RegisterPost)
 
 	// Application bits
 	r := router.Group("/")

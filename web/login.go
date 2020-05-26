@@ -10,7 +10,10 @@ import (
 )
 
 func Login(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", nil)
+	d := map[string]string{
+		"PageTitle": "ValueChain Login",
+	}
+	c.HTML(http.StatusOK, "login.html", d)
 }
 
 func LoginPost(c *gin.Context) {
