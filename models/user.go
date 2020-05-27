@@ -47,7 +47,8 @@ func (u *User) Validate() error {
 	if len(u.Email) == 0 {
 		return errors.New("missing email")
 	}
-	if ps := passwordStrength(u.Password); ps < 3 {
+	u.PasswordStrength = passwordStrength(u.Password)
+	if u.PasswordStrength < viper.GetInt("minimumPasswordStrength") {
 		return errors.New("password is not complex enough")
 	}
 	return nil
@@ -62,6 +63,9 @@ func (u *User) Save() error {
 }
 
 func (u *User) Update(items map[string]interface{}) error {
+	if password, ok := items["password"]; ok {
+		items["password_strength"] = passwordStrength(password.(string))
+	}
 	if err := session.Model(&u).Updates(items).Error; err != nil {
 		return err
 	}
