@@ -63,7 +63,7 @@
                             {{ range $j, $r := (index $.Relationships (uts $c.ID)) }}
                             <a href="/companies/{{ uts $.Company.ID }}/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a>
                             <a href="/companies/{{ uts $r.RightCompany.ID}}">{{ $r.RightCompany.Name }}</a>
-                            <i class="fas fa-medal" style="color: #{{ (index $.Tiers $r.Tier).Color }}"></i>
+                            <i class="fas fa-medal" title="{{ (index $.Tiers $r.Tier).Name }}" style="color: #{{ (index $.Tiers $r.Tier).Color }}"></i>
                             <br />
                             {{ end }}
                         </td>{{ end }}
