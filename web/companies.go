@@ -154,42 +154,6 @@ func CompaniesRead(c *gin.Context) {
 	c.HTML(http.StatusOK, "companies-single.html", d)
 }
 
-// CompaniesUpdate renders the /companies/[ID]/edit page
-func CompaniesUpdate(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	company, err := models.GetCompany(id)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-	cts, err := models.ListCompanyTypes(nil)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	scs, err := models.ListSectors(nil)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	d := struct {
-		PageTitle    string
-		Company      models.Company
-		CompanyTypes []models.CompanyType
-		Sectors      []models.Sector
-	}{
-		PageTitle:    "Add Company",
-		Company:      *company,
-		CompanyTypes: cts,
-		Sectors:      scs,
-	}
-	c.HTML(http.StatusOK, "companies-form.html", d)
-}
-
 // CompaniesUpdatePost parses the form from /companies/[ID]/edit page
 func CompaniesUpdatePost(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
