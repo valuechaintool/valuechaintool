@@ -98,6 +98,11 @@ func CompaniesRead(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	scs, err := models.ListSectors(nil)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	relationships := make(map[string][]models.Relationship)
 	for _, ct := range cts {
 		relationships[ct.ID.String()] = []models.Relationship{}
@@ -135,6 +140,7 @@ func CompaniesRead(c *gin.Context) {
 		CompanyTypes  []models.CompanyType
 		Relationships map[string][]models.Relationship
 		Tiers         []models.Tier
+		Sectors       []models.Sector
 		Companies     map[string][]models.Company
 	}{
 		PageTitle:     fmt.Sprintf("Company %s information", (*company).Name),
@@ -142,6 +148,7 @@ func CompaniesRead(c *gin.Context) {
 		CompanyTypes:  cts,
 		Relationships: relationships,
 		Tiers:         models.ListTiers(),
+		Sectors:       scs,
 		Companies:     companies,
 	}
 	c.HTML(http.StatusOK, "companies-single.html", d)
@@ -195,27 +202,44 @@ func CompaniesUpdatePost(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	sectorID, err := uuid.Parse(c.PostForm("sector"))
-	if err != nil {
-		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	typeID, err := uuid.Parse(c.PostForm("type"))
-	if err != nil {
-		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
-	}
-	// Fill the data
-	company.Name = c.PostForm("name")
-	company.SectorID = sectorID
-	company.TypeID = typeID
-	company.Country = c.PostForm("country")
 
-	if err := company.Save(); err != nil {
+	updates := make(map[string]interface{})
+
+	// Name
+	if name, ok := c.GetPostForm("name"); ok {
+		updates["name"] = name
+	}
+
+	// Sector
+	if sector, ok := c.GetPostForm("sector"); ok {
+		sectorID, err := uuid.Parse(sector)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		updates["sector_id"] = sectorID
+	}
+
+	// Type
+	if t, ok := c.GetPostForm("type"); ok {
+		typeID, err := uuid.Parse(t)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		updates["type_id"] = typeID
+	}
+
+	// Country
+	if country, ok := c.GetPostForm("country"); ok {
+		updates["country"] = country
+	}
+
+	if err := company.Update(updates); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", id.String()))
+	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s?edit_mode=true", id.String()))
 }
 
 // CompaniesDelete responds to /companies/[ID]/delete url

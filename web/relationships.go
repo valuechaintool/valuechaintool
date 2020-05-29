@@ -36,7 +36,7 @@ func RelationshipsCreatePost(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", leftID.String()))
+	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s?edit_mode=true", leftID.String()))
 }
 
 // RelationshipsDelete responds to /relationships/[ID]/delete url
@@ -55,5 +55,5 @@ func RelationshipsDelete(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s", c.Param("id")))
+	c.Redirect(http.StatusFound, fmt.Sprintf("/companies/%s?edit_mode=true", c.Param("id")))
 }

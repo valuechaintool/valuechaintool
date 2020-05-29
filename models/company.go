@@ -16,9 +16,9 @@ type Company struct {
 	DeletedAt     *time.Time     ``
 	Name          string         `json:"name"`
 	TypeID        uuid.UUID      `gorm:"type:uuid"`
-	Type          CompanyType    `json:"type"`
+	Type          CompanyType    `json:"type" gorm:"save_associations:false"`
 	SectorID      uuid.UUID      `gorm:"type:uuid"`
-	Sector        Sector         `json:"sector"`
+	Sector        Sector         `json:"sector" gorm:"save_associations:false"`
 	Country       string         `json:"country"`
 	Relationships []Relationship `json:"relationships" gorm:"-"`
 }
@@ -41,6 +41,14 @@ func (c *Company) Validate() error {
 func (c *Company) EagerLoad() error {
 	var err error
 	c.Relationships, err = GetRelationshipsByMember(c.ID, true)
+	return err
+}
+
+func (c *Company) Update(items map[string]interface{}) error {
+	if err := session.Model(c).Updates(items).Error; err != nil {
+		return err
+	}
+	c, err := GetCompany(c.ID)
 	return err
 }
 

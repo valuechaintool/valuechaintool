@@ -11,6 +11,8 @@
         <!-- Bootstrap core CSS -->
         <link rel="stylesheet" href="/static/css/bootstrap-4.4.1.min.css">
 
+        <link rel="stylesheet" href="/static/css/application.css">
+
         <script src="/static/js/jquery-3.4.1.slim.min.js"></script>
 
     </head>
@@ -33,7 +35,7 @@
         <script src="/static/js/popper-1.16.0.min.js"></script>
         <!-- Bootstrap JavaScript -->
         <script src="/static/js/bootstrap-4.4.1.min.js"></script>
-        {{ block "js" . }}{{ end }}
+        <script>{{ block "js" . }}{{ end }}</script>
     </body>
 </html>
 
