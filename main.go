@@ -69,6 +69,7 @@ func main() {
 	r.POST("/companies/:id/edit", web.CompaniesUpdatePost)
 	r.GET("/companies/:id/delete", web.CompaniesDelete)
 	r.POST("/companies/:id/relationships", web.RelationshipsCreatePost)
+	r.POST("/companies/:id/relationships/:rid", web.RelationshipsUpdate)
 	r.GET("/companies/:id/relationships/:rid/delete", web.RelationshipsDelete)
 
 	// Health

@@ -45,10 +45,11 @@ func (c *Company) EagerLoad() error {
 }
 
 func (c *Company) Update(items map[string]interface{}) error {
-	if err := session.Model(c).Updates(items).Error; err != nil {
+	err := session.Model(c).Updates(items).Error
+	if err != nil {
 		return err
 	}
-	c, err := GetCompany(c.ID) //nolint:staticcheck
+	c, err = GetCompany(c.ID) //nolint:staticcheck
 	return err
 }
 

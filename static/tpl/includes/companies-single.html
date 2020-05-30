@@ -100,6 +100,7 @@
                                         <div class="form-group">
                                             <label>Tier</label>
                                             {{ range $j, $t := $.Tiers }}
+                                            {{ if gt $t.ID 0 }}
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="tier" id="tier-{{ $c.Abbreviation }}-{{ $t.ID }}" value="{{ $t.ID }}" {{ if eq $j 0 }}checked{{ end }}>
                                                 <label class="form-check-label" for="tier-{{ $c.Abbreviation }}-{{ $t.ID }}">
@@ -108,6 +109,7 @@
                                                 </label>
                                             </div>
                                             {{ end }}
+                                            {{ end }}
                                         </div>
                                         <button type="submit" class="btn btn-primary">Submit</button>
                                     </form>
@@ -115,9 +117,39 @@
                             </div>
                             {{ range $j, $r := (index $.Relationships (uts $c.ID)) }}
                             <a class="edit-mode" href="/companies/{{ uts $.Company.ID }}/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a>
-                            <a href="/companies/{{ uts $r.RightCompany.ID}}">{{ $r.RightCompany.Name }}</a>
-                            <i class="fas fa-medal" title="{{ (index $.Tiers $r.Tier).Name }}" style="color: #{{ (index $.Tiers $r.Tier).Color }}"></i>
+                            <a class="edit-mode" href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'block';"><i class="fas fa-pen"></i></a>
+                            <a href="/companies/{{ uts $r.RightCompany.ID}}" title="{{ $r.Notes }}">{{ $r.RightCompany.Name }}</a>
+                            <i class="fas fa-medal" title="{{ (index $.Tiers $r.LeftTier).Name }}" style="color: #{{ (index $.Tiers $r.LeftTier).Color }}"></i>
                             <br />
+                            <div class="card" id="edit-{{ $r.ID }}" style="width: 100%; display: none;">
+                                <div class="card-body">
+                                    <form method="post" action="/companies/{{ $.Company.ID }}/relationships/{{ $r.ID }}">
+                                        <div style="float: inline-end;">
+                                            <a href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'none';">
+                                                <i class="fas fa-times" style="color: red;"></i>
+                                            </a>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tier</label>
+                                            {{ range $j, $t := $.Tiers }}
+                                            {{ if gt $t.ID 0 }}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="tier" id="tier-{{ $r.ID }}-{{ $t.ID }}" value="{{ $t.ID }}" {{ if eq $j $r.LeftTier }}checked{{ end }}>
+                                                <label class="form-check-label" for="tier-{{ $r.ID }}-{{ $t.ID }}">
+                                                    {{ $t.Name }}
+                                                    <i class="fas fa-medal" style="color: #{{ $t.Color }}"></i>
+                                                </label>
+                                            </div>
+                                            {{ end }}
+                                            {{ end }}
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notes-{{ $r.ID }}">Notes</label>
+                                            <textarea class="form-control" id="notes-{{ $r.ID }}" name="notes" rows="3">{{ $r.Notes }}</textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </form>
+                                </div>
                             {{ end }}
                         </td>{{ end }}
                     </tr>

@@ -17,7 +17,9 @@ type Relationship struct {
 	LeftCompany  *Company   `json:"left_company" gorm:"foreignkey:LeftID"`
 	RightID      uuid.UUID  `json:"right_id" gorm:"type:uuid"`
 	RightCompany *Company   `json:"right_company" gorm:"foreignkey:RightID"`
-	Tier         int        `json:"tier"`
+	LeftTier     int        `json:"left_tier"`
+	RightTier    int        `json:"right_tier"`
+	Notes        string     `json:"notes"`
 }
 
 func (r *Relationship) BeforeSave() error {
@@ -35,12 +37,36 @@ func (r *Relationship) Reverse() Relationship {
 		DeletedAt: r.DeletedAt,
 		LeftID:    r.RightID,
 		RightID:   r.LeftID,
-		Tier:      r.Tier,
+		LeftTier:  r.RightTier,
+		RightTier: r.LeftTier,
+		Notes:     r.Notes,
 	}
 }
 
 func (r *Relationship) Conflicts() bool {
 	return false
+}
+
+func (r *Relationship) Update(relTier int, notes string) error {
+	or, err := GetRelationship(r.ID)
+	if err != nil {
+		return err
+	}
+	if or.LeftID == r.LeftID {
+		session.Model(&or).Update("left_tier", relTier)
+	} else {
+		session.Model(&or).Update("right_tier", relTier)
+	}
+	session.Model(&or).Update("notes", notes)
+	nr, err := GetRelationship(r.ID)
+	if err != nil {
+		return err
+	}
+	if nr.LeftID != r.LeftID {
+		*nr = nr.Reverse()
+	}
+	r = nr
+	return nil
 }
 
 func (r *Relationship) Validate() error {

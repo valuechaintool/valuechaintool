@@ -112,7 +112,7 @@ func CompaniesRead(c *gin.Context) {
 	}
 	for cti := range relationships {
 		sort.SliceStable(relationships[cti], func(i, j int) bool {
-			return relationships[cti][i].Tier > relationships[cti][j].Tier
+			return relationships[cti][i].LeftTier > relationships[cti][j].LeftTier
 		})
 
 	}
