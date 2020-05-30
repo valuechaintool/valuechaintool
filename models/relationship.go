@@ -65,7 +65,7 @@ func (r *Relationship) Update(relTier int, notes string) error {
 	if nr.LeftID != r.LeftID {
 		*nr = nr.Reverse()
 	}
-	r = nr
+	r = nr //nolint:staticcheck
 	return nil
 }
 
