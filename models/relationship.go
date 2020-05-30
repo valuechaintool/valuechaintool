@@ -44,6 +44,19 @@ func (r *Relationship) Reverse() Relationship {
 }
 
 func (r *Relationship) Conflicts() bool {
+	var count int
+	if err := session.Model(&Relationship{}).Where("left_id = ?", r.LeftID).Where("right_id = ?", r.RightID).Count(&count).Error; err != nil {
+		return true
+	}
+	if count > 0 {
+		return true
+	}
+	if err := session.Model(&Relationship{}).Where("left_id = ?", r.RightID).Where("right_id = ?", r.LeftID).Count(&count).Error; err != nil {
+		return true
+	}
+	if count > 0 {
+		return true
+	}
 	return false
 }
 
@@ -70,6 +83,9 @@ func (r *Relationship) Update(relTier int, notes string) error {
 }
 
 func (r *Relationship) Validate() error {
+	if r.LeftID == r.RightID {
+		return fmt.Errorf("a company can not be its own partner")
+	}
 	return nil
 }
 
