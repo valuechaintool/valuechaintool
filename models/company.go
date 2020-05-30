@@ -31,10 +31,23 @@ func (c *Company) BeforeSave() error {
 }
 
 func (c *Company) Conflicts() bool {
+	var count int
+	if err := session.Model(&Company{}).Where("name = ?", c.Name).Count(&count).Error; err != nil {
+		return true
+	}
+	if count > 0 {
+		return true
+	}
 	return false
 }
 
 func (c *Company) Validate() error {
+	if len(c.Name) == 0 {
+		return fmt.Errorf("name is a required field")
+	}
+	if len(c.Country) == 0 {
+		return fmt.Errorf("country is a required field")
+	}
 	return nil
 }
 
