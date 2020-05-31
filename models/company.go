@@ -17,8 +17,7 @@ type Company struct {
 	Name          string         `json:"name"`
 	TypeID        uuid.UUID      `gorm:"type:uuid"`
 	Type          CompanyType    `json:"type" gorm:"save_associations:false"`
-	SectorID      uuid.UUID      `gorm:"type:uuid"`
-	Sector        Sector         `json:"sector" gorm:"save_associations:false"`
+	Verticals     []Vertical     `json:"verticals" gorm:"-"`
 	Country       string         `json:"country"`
 	Relationships []Relationship `json:"relationships" gorm:"-"`
 }
@@ -58,10 +57,30 @@ func (c *Company) EagerLoad() error {
 }
 
 func (c *Company) Update(items map[string]interface{}) error {
-	err := session.Model(c).Updates(items).Error
-	if err != nil {
+	if _, ok := items["verticals"]; ok {
+		c.Verticals = items["verticals"].([]Vertical)
+	}
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
 		return err
 	}
+
+	if err := tx.Model(c).Updates(items).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := syncCompanyVertical(tx, c.ID, c.Verticals); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	var err error
 	c, err = GetCompany(c.ID) //nolint:staticcheck
 	return err
 }
@@ -97,6 +116,11 @@ func (c *Company) Delete() error {
 		}
 	}
 
+	if err := syncCompanyVertical(tx, c.ID, []Vertical{}); err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	if err := tx.Delete(c).Error; err != nil {
 		tx.Rollback()
 		return err
@@ -115,9 +139,26 @@ func NewCompany(c *Company) error {
 	if c.Conflicts() {
 		return fmt.Errorf("the item already exists")
 	}
-	if err := session.Create(&c).Error; err != nil {
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
 		return err
 	}
+
+	if err := session.Create(&c).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := syncCompanyVertical(tx, c.ID, c.Verticals); err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
 	return nil
 }
 
@@ -132,11 +173,11 @@ func ListCompanies(filters map[string]interface{}) ([]Company, error) {
 			return nil, err
 		}
 		items[c].Type = *companyType
-		sector, err := GetSector(items[c].SectorID)
+		verticals, err := GetVerticalsByCompany(items[c].ID)
 		if err != nil {
 			return nil, err
 		}
-		items[c].Sector = *sector
+		items[c].Verticals = verticals
 	}
 	return items, nil
 }
@@ -152,11 +193,11 @@ func SearchCompanies(query string) ([]Company, error) {
 			return nil, err
 		}
 		items[c].Type = *companyType
-		sector, err := GetSector(items[c].SectorID)
+		verticals, err := GetVerticalsByCompany(items[c].ID)
 		if err != nil {
 			return nil, err
 		}
-		items[c].Sector = *sector
+		items[c].Verticals = verticals
 	}
 	return items, nil
 }
@@ -175,10 +216,10 @@ func GetCompany(id uuid.UUID) (*Company, error) {
 		return nil, err
 	}
 	item.Type = *companyType
-	sector, err := GetSector(item.SectorID)
+	verticals, err := GetVerticalsByCompany(item.ID)
 	if err != nil {
 		return nil, err
 	}
-	item.Sector = *sector
+	item.Verticals = verticals
 	return &item, nil
 }

@@ -17,7 +17,7 @@ func CompaniesCreate(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	scs, err := models.ListSectors(nil)
+	vcs, err := models.ListVerticals(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -26,21 +26,25 @@ func CompaniesCreate(c *gin.Context) {
 		PageTitle    string
 		Company      models.Company
 		CompanyTypes []models.CompanyType
-		Sectors      []models.Sector
+		Verticals    []models.Vertical
 	}{
 		PageTitle:    "Add Company",
 		CompanyTypes: cts,
-		Sectors:      scs,
+		Verticals:    vcs,
 	}
 	c.HTML(http.StatusOK, "companies-form.html", d)
 }
 
 // CompaniesCreatePost parses the form from /companies/new page
 func CompaniesCreatePost(c *gin.Context) {
-	sectorID, err := uuid.Parse(c.PostForm("sector"))
-	if err != nil {
-		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
-		return
+	var verticals []models.Vertical
+	for _, vc := range c.PostFormArray("verticals[]") {
+		id, err := uuid.Parse(vc)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+			return
+		}
+		verticals = append(verticals, models.Vertical{ID: id})
 	}
 	typeID, err := uuid.Parse(c.PostForm("type"))
 	if err != nil {
@@ -48,10 +52,10 @@ func CompaniesCreatePost(c *gin.Context) {
 		return
 	}
 	company := models.Company{
-		Name:     c.PostForm("name"),
-		Country:  c.PostForm("country"),
-		SectorID: sectorID,
-		TypeID:   typeID,
+		Name:      c.PostForm("name"),
+		Country:   c.PostForm("country"),
+		Verticals: verticals,
+		TypeID:    typeID,
 	}
 	if err := models.NewCompany(&company); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
@@ -98,7 +102,7 @@ func CompaniesRead(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	scs, err := models.ListSectors(nil)
+	vcs, err := models.ListVerticals(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -140,7 +144,7 @@ func CompaniesRead(c *gin.Context) {
 		CompanyTypes  []models.CompanyType
 		Relationships map[string][]models.Relationship
 		Tiers         []models.Tier
-		Sectors       []models.Sector
+		Verticals     []models.Vertical
 		Companies     map[string][]models.Company
 	}{
 		PageTitle:     fmt.Sprintf("Company %s information", (*company).Name),
@@ -148,7 +152,7 @@ func CompaniesRead(c *gin.Context) {
 		CompanyTypes:  cts,
 		Relationships: relationships,
 		Tiers:         models.ListTiers(),
-		Sectors:       scs,
+		Verticals:     vcs,
 		Companies:     companies,
 	}
 	c.HTML(http.StatusOK, "companies-single.html", d)
@@ -174,14 +178,18 @@ func CompaniesUpdatePost(c *gin.Context) {
 		updates["name"] = name
 	}
 
-	// Sector
-	if sector, ok := c.GetPostForm("sector"); ok {
-		sectorID, err := uuid.Parse(sector)
-		if err != nil {
-			_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
-			return
+	// Verticals
+	if vcs, ok := c.GetPostFormArray("verticals[]"); ok {
+		var verticals []models.Vertical
+		for _, vc := range vcs {
+			id, err := uuid.Parse(vc)
+			if err != nil {
+				_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+				return
+			}
+			verticals = append(verticals, models.Vertical{ID: id})
 		}
-		updates["sector_id"] = sectorID
+		updates["verticals"] = verticals
 	}
 
 	// Type

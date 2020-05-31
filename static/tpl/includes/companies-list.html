@@ -9,7 +9,7 @@
                     <tr>
                         <td><a href="/companies/{{ .ID }}">{{ .Name }}</a></td>
                         <td>{{ .Type.Abbreviation }}</td>
-                        <td>{{ .Sector.Name }}</td>
+                        <td>{{ range $k, $v := .Verticals }}{{ if ne $k 0 }}, {{ end }}{{ $v.Name }}{{ end }}</td>
                     </tr>
                 {{ end }}
                 </table>

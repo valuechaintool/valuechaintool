@@ -20,11 +20,12 @@ func Init(dbSession *gorm.DB) error {
 
 	// Application bits
 	session.AutoMigrate(&Company{})
+	session.AutoMigrate(&CompanyVertical{})
 	session.AutoMigrate(&Relationship{})
 	if err := UnmarshalCompanyTypes(); err != nil {
 		return err
 	}
-	if err := UnmarshalSectors(); err != nil {
+	if err := UnmarshalVerticals(); err != nil {
 		return err
 	}
 	if err := viper.UnmarshalKey("tiers", &tiers); err != nil {
