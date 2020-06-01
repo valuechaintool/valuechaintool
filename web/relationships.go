@@ -22,6 +22,10 @@ func RelationshipsCreatePost(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
+	if !isAllowedMany(c, []uuid.UUID{leftID, rightID}, "createRelationship") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
+		return
+	}
 	tier, err := strconv.Atoi(c.PostForm("tier"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
@@ -56,6 +60,10 @@ func RelationshipsUpdate(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
+	if !isAllowedMany(c, []uuid.UUID{relationship.LeftID, relationship.RightID}, "updateRelationship") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
+		return
+	}
 
 	if relationship.LeftID != companyID {
 		*relationship = relationship.Reverse()
@@ -84,6 +92,10 @@ func RelationshipsDelete(c *gin.Context) {
 	relationship, err := models.GetRelationship(id)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	if !isAllowedMany(c, []uuid.UUID{relationship.LeftID, relationship.RightID}, "deleteRelationship") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
 	if err := relationship.Delete(); err != nil {

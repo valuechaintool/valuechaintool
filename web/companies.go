@@ -12,6 +12,10 @@ import (
 
 // CompaniesCreate renders the /companies/new page
 func CompaniesCreate(c *gin.Context) {
+	if !isAllowed(c, models.WildCardResource, "createCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
+		return
+	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
@@ -37,6 +41,10 @@ func CompaniesCreate(c *gin.Context) {
 
 // CompaniesCreatePost parses the form from /companies/new page
 func CompaniesCreatePost(c *gin.Context) {
+	if !isAllowed(c, models.WildCardResource, "createCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
+		return
+	}
 	var verticals []models.Vertical
 	for _, vc := range c.PostFormArray("verticals[]") {
 		id, err := uuid.Parse(vc)
@@ -71,12 +79,20 @@ func CompaniesList(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	visibleCompanies := []models.Company{}
+	for k := range companies {
+		if isAllowed(c, companies[k].ID, "readCompany") {
+			visibleCompanies = append(visibleCompanies, companies[k])
+		}
+	}
 	d := struct {
-		PageTitle string
-		Companies []models.Company
+		PageTitle          string
+		Companies          []models.Company
+		CanCreateCompanies bool
 	}{
-		PageTitle: "HomePage",
-		Companies: companies,
+		PageTitle:          "HomePage",
+		Companies:          visibleCompanies,
+		CanCreateCompanies: isAllowed(c, models.WildCardResource, "createCompany"),
 	}
 	c.HTML(http.StatusOK, "companies-list.html", d)
 }
@@ -86,6 +102,10 @@ func CompaniesRead(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	if !isAllowed(c, id, "readCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
 	company, err := models.GetCompany(id)
@@ -118,8 +138,8 @@ func CompaniesRead(c *gin.Context) {
 		sort.SliceStable(relationships[cti], func(i, j int) bool {
 			return relationships[cti][i].LeftTier > relationships[cti][j].LeftTier
 		})
-
 	}
+
 	cps, err := models.ListCompanies(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
@@ -139,21 +159,31 @@ func CompaniesRead(c *gin.Context) {
 
 	}
 	d := struct {
-		PageTitle     string
-		Company       models.Company
-		CompanyTypes  []models.CompanyType
-		Relationships map[string][]models.Relationship
-		Tiers         []models.Tier
-		Verticals     []models.Vertical
-		Companies     map[string][]models.Company
+		PageTitle              string
+		Company                models.Company
+		CompanyTypes           []models.CompanyType
+		Relationships          map[string][]models.Relationship
+		Tiers                  []models.Tier
+		Verticals              []models.Vertical
+		Companies              map[string][]models.Company
+		CanUpdateCompany       bool
+		CanDeleteCompany       bool
+		CanCreateRelationships bool
+		CanUpdateRelationships bool
+		CanDeleteRelationships bool
 	}{
-		PageTitle:     fmt.Sprintf("Company %s information", (*company).Name),
-		Company:       *company,
-		CompanyTypes:  cts,
-		Relationships: relationships,
-		Tiers:         models.ListTiers(),
-		Verticals:     vcs,
-		Companies:     companies,
+		PageTitle:              fmt.Sprintf("Company %s information", (*company).Name),
+		Company:                *company,
+		CompanyTypes:           cts,
+		Relationships:          relationships,
+		Tiers:                  models.ListTiers(),
+		Verticals:              vcs,
+		Companies:              companies,
+		CanUpdateCompany:       isAllowed(c, id, "updateCompany"),
+		CanDeleteCompany:       isAllowed(c, id, "deleteCompany"),
+		CanCreateRelationships: isAllowed(c, id, "createRelationship"),
+		CanUpdateRelationships: isAllowed(c, id, "updateRelationship"),
+		CanDeleteRelationships: isAllowed(c, id, "deleteRelationship"),
 	}
 	c.HTML(http.StatusOK, "companies-single.html", d)
 }
@@ -163,6 +193,10 @@ func CompaniesUpdatePost(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	if !isAllowed(c, id, "updateCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
 	company, err := models.GetCompany(id)
@@ -219,6 +253,10 @@ func CompaniesDelete(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	if !isAllowed(c, id, "deleteCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
 	company, err := models.GetCompany(id)

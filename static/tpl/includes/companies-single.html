@@ -1,7 +1,7 @@
 {{ define "content" }}
-<a class="btn btn-primary" style="color: white;" id="edit-mode-button" onclick="enableEditMode()">Edit mode</a>
+{{ if $.CanUpdateCompany }}<a class="btn btn-primary" style="color: white;" id="edit-mode-button" onclick="enableEditMode()">Edit mode</a>{{ end }}
 <a class="btn btn-primary edit-mode" style="color: white;" onclick="disableEditMode()">Exit edit mode</a>
-<a class="btn btn-danger edit-mode" href="/companies/{{ .Company.ID }}/delete">Delete company</a>
+{{ if $.CanDeleteCompany }}<a class="btn btn-danger edit-mode" href="/companies/{{ .Company.ID }}/delete">Delete company</a>{{ end }}
 <div class="row">
     <div class="col-md-6">
         <div class="card">
@@ -79,9 +79,11 @@
                     <tr>
                         {{ range $i, $c := .CompanyTypes }}<td style="width: 10%; vertical-align: top;">
                             <b>{{ $c.Abbreviation }}</b>
+                            {{ if $.CanCreateRelationships }}
                             <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-{{ $c.Abbreviation }}').style.display = 'block';">
                                 <i class="fas fa-plus" style="color: green;"></i>
                             </a>
+                            {{ end }}
                             <br />
                             <div class="card" id="new-{{ $c.Abbreviation }}" style="width: 100%; display: none;">
                                 <div class="card-body">
@@ -126,8 +128,12 @@
                                 </div>
                             </div>
                             {{ range $j, $r := (index $.Relationships (uts $c.ID)) }}
+                            {{ if $.CanDeleteRelationships }}
                             <a class="edit-mode" href="/companies/{{ uts $.Company.ID }}/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a>
+                            {{ end }}
+                            {{ if $.CanUpdateRelationships }}
                             <a class="edit-mode" href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'block';"><i class="fas fa-pen"></i></a>
+                            {{ end }}
                             <a href="/companies/{{ uts $r.RightCompany.ID}}" title="{{ $r.Notes }}">{{ $r.RightCompany.Name }}</a>
                             <i class="fas fa-medal" title="{{ (index $.Tiers $r.LeftTier).Name }}" style="color: #{{ (index $.Tiers $r.LeftTier).Color }}"></i>
                             <br />

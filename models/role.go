@@ -49,7 +49,7 @@ var roles = []Role{
 			"updateCompany",
 			"createRelationship",
 			"updateRelationship",
-			"deleteReleationship",
+			"deleteRelationship",
 		},
 	},
 	{
@@ -62,7 +62,7 @@ var roles = []Role{
 			"deleteCompany",
 			"createRelationship",
 			"updateRelationship",
-			"deleteReleationship",
+			"deleteRelationship",
 		},
 	},
 	{
@@ -75,7 +75,7 @@ var roles = []Role{
 			"deleteCompany",
 			"createRelationship",
 			"updateRelationship",
-			"deleteReleationship",
+			"deleteRelationship",
 			"readUser",
 			"updateUser",
 			"deleteUser",
