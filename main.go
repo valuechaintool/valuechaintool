@@ -72,6 +72,13 @@ func main() {
 	r.POST("/companies/:id/relationships/:rid", web.RelationshipsUpdate)
 	r.GET("/companies/:id/relationships/:rid/delete", web.RelationshipsDelete)
 
+	// Users management bits
+	r.GET("/users", web.UsersList)
+	r.GET("/users/:user_id", web.UsersRead)
+	r.GET("/users/:user_id/delete", web.UsersDelete)
+	r.POST("/users/:user_id/permissions", web.PermissionsCreatePost)
+	r.GET("/users/:user_id/permissions/:permission_id/delete", web.PermissionsDelete)
+
 	// Health
 	router.GET("/healthz", web.Healthz)
 	router.GET("/readiness", web.Readiness)

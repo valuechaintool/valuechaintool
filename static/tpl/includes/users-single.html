@@ -1,0 +1,145 @@
+{{ define "content" }}
+{{ if $.CanUpdateUser }}<a class="btn btn-primary" style="color: white;" id="edit-mode-button" onclick="enableEditMode()">Edit mode</a>{{ end }}
+<a class="btn btn-primary edit-mode" style="color: white;" onclick="disableEditMode()">Exit edit mode</a>
+{{ if $.CanDeleteUser }}<a class="btn btn-danger edit-mode" href="/users/{{ .User.ID }}/delete">Delete user</a>{{ end }}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <table width=100%>
+                    <tr>
+                        <th>Username</th>
+                        <td>{{ .User.Username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Real Name</th>
+                        <td>{{ .User.RealName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ .User.Email }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12" style="margin-top:30px;">
+        <div class="card">
+            <div class="card-body">
+                Global:
+                {{ if $.CanManagePermissions }}
+                <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-global').style.display = 'block';">
+                    <i class="fas fa-plus" style="color: green;"></i>
+                </a>
+                <div class="card" id="new-global" style="width: 100%; display: none;">
+                    <div class="card-body">
+                        <form method="post" action="/users/{{ $.User.ID }}/permissions">
+                            <div style="float: inline-end;">
+                                <a href="#" onclick="javascript:document.getElementById('new-global').style.display = 'none';">
+                                    <i class="fas fa-times" style="color: red;"></i>
+                                </a>
+                            </div>
+                            <div class="form-group" style="display: none;">
+                                <select class="custom-select my-1 mr-sm-2" id="resource" name="resource">
+                                    <option value="00000000-0000-0000-0000-000000000001" selected>Global</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="type">Role</label>
+                                <select class="custom-select my-1 mr-sm-2" id="role" name="role">
+                                    {{ range .Roles }}
+                                    <option value="{{ .ID }}">{{ .Name }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                {{ end }}
+                <ul>
+                    {{ range .PermissionsGlobal }}
+                    <li>
+                        {{ if $.CanManagePermissions }}
+                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><i class="fas fa-trash"></i></a>
+                        {{ end }}
+                        {{ (index $.Roles (uts .RoleID)).Name }}
+                    </li>
+                    {{ else }}
+                    <li><i>none</i></li>
+                    {{ end }}
+                </ul>
+                Resource specific:
+                {{ if $.CanManagePermissions }}
+                <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-resource').style.display = 'block';">
+                    <i class="fas fa-plus" style="color: green;"></i>
+                </a>
+                <div class="card" id="new-resource" style="width: 100%; display: none;">
+                    <div class="card-body">
+                        <form method="post" action="/users/{{ $.User.ID }}/permissions">
+                            <div style="float: inline-end;">
+                                <a href="#" onclick="javascript:document.getElementById('new-resource').style.display = 'none';">
+                                    <i class="fas fa-times" style="color: red;"></i>
+                                </a>
+                            </div>
+                            <div class="form-group">
+                                <select class="custom-select my-1 mr-sm-2" id="resource" name="resource">
+                                    {{ range .Companies }}
+                                    <option value="{{ .ID }}" selected>{{ .Name }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="type">Role</label>
+                                <select class="custom-select my-1 mr-sm-2" id="role" name="role">
+                                    {{ range .Roles }}
+                                    <option value="{{ .ID }}">{{ .Name }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                {{ end }}
+                <ul>
+                    {{ range .PermissionsLocal }}
+                    <li>
+                        {{ if $.CanManagePermissions }}
+                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><i class="fas fa-trash"></i></a>
+                        {{ end }}
+                        <a href="/companies/{{ (index $.Companies (uts .ResourceID)).ID }}">{{ (index $.Companies (uts .ResourceID)).Name }}</a>
+                        - {{ (index $.Roles (uts .RoleID)).Name }}
+                    </li>
+                    {{ else }}
+                    <li><i>none</i></li>
+                    {{ end }}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}
+
+{{ define "js" }}
+if (window.location.search.indexOf('edit_mode=true') > -1) {
+    enableEditMode()
+}
+
+function enableEditMode() {
+  window.history.replaceState({}, document.title, "/users/{{ $.User.ID }}?edit_mode=true");
+  document.getElementById("edit-mode-button").style.display = "none";
+  var cols = document.getElementsByClassName('edit-mode');
+  for(i = 0; i < cols.length; i++) {
+    cols[i].style.display = 'inline-block';
+  }
+}
+function disableEditMode() {
+  window.history.replaceState({}, document.title, "/users/{{ $.User.ID }}");
+  document.getElementById("edit-mode-button").style.display = "inline-block";
+  var cols = document.getElementsByClassName('edit-mode');
+  for(i = 0; i < cols.length; i++) {
+    cols[i].style.display = 'none';
+  }
+}
+{{ end }}

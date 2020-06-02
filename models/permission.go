@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jinzhu/gorm"
 )
 
 var WildCardResource = uuid.Must(uuid.Parse("00000000-0000-0000-0000-000000000001"))
@@ -55,6 +56,18 @@ func NewPermission(p *Permission) error {
 		return err
 	}
 	return nil
+}
+
+func GetPermission(id uuid.UUID) (*Permission, error) {
+	var item Permission
+	err := session.Where("id = ?", id).First(&item).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
 
 func ListPermissionsByUser(userID uuid.UUID) ([]Permission, error) {

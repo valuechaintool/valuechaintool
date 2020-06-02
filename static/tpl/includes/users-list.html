@@ -1,0 +1,19 @@
+{{ define "content" }}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <table width=100%>
+                {{ range $key, $value := .Users }}
+                    <tr>
+                        <td><a href="/users/{{ .ID }}">{{ .Username }}</a></td>
+                        <td>{{ .RealName }}</td>
+                        <td>{{ .Email }}</td>
+                    </tr>
+                {{ end }}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{{ end }}
