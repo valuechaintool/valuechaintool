@@ -56,6 +56,24 @@ func (c *Company) EagerLoad() error {
 	return err
 }
 
+func (c *Company) Owners() ([]User, error) {
+	permissions, err := ListPermissionsByResource(c.ID)
+	if err != nil {
+		return nil, err
+	}
+	users := []User{}
+	for _, permission := range permissions {
+		if permission.RoleID == uuid.Must(uuid.Parse("5a2dbf8e-8ba8-4ca5-ac2d-cc11f1f0fb2d")) {
+			user, err := GetUser(permission.UserID)
+			if err != nil {
+				return nil, err
+			}
+			users = append(users, *user)
+		}
+	}
+	return users, nil
+}
+
 func (c *Company) Update(items map[string]interface{}) error {
 	if _, ok := items["verticals"]; ok {
 		c.Verticals = items["verticals"].([]Vertical)
@@ -129,7 +147,7 @@ func (c *Company) Delete() error {
 	return tx.Commit().Error
 }
 
-func NewCompany(c *Company) error {
+func NewCompany(c *Company, owner uuid.UUID) error {
 	if c.ID == uuid.Nil {
 		var err error
 		if c.ID, err = uuid.NewRandom(); err != nil {
@@ -155,6 +173,15 @@ func NewCompany(c *Company) error {
 		return err
 	}
 	if err := syncCompanyVertical(tx, c.ID, c.Verticals); err != nil {
+		tx.Rollback()
+		return err
+	}
+	permission := Permission{
+		UserID:     owner,
+		ResourceID: c.ID,
+		RoleID:     uuid.Must(uuid.Parse("5a2dbf8e-8ba8-4ca5-ac2d-cc11f1f0fb2d")),
+	}
+	if err := NewPermission(&permission); err != nil {
 		tx.Rollback()
 		return err
 	}

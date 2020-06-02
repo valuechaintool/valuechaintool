@@ -65,7 +65,12 @@ func CompaniesCreatePost(c *gin.Context) {
 		Verticals: verticals,
 		TypeID:    typeID,
 	}
-	if err := models.NewCompany(&company); err != nil {
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	if err := models.NewCompany(&company, userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -117,6 +122,11 @@ func CompaniesRead(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	owners, err := company.Owners()
+	if err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	cts, err := models.ListCompanyTypes(nil)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
@@ -161,6 +171,7 @@ func CompaniesRead(c *gin.Context) {
 	d := struct {
 		PageTitle              string
 		Company                models.Company
+		Owners                 []models.User
 		CompanyTypes           []models.CompanyType
 		Relationships          map[string][]models.Relationship
 		Tiers                  []models.Tier
@@ -174,6 +185,7 @@ func CompaniesRead(c *gin.Context) {
 	}{
 		PageTitle:              fmt.Sprintf("Company %s information", (*company).Name),
 		Company:                *company,
+		Owners:                 owners,
 		CompanyTypes:           cts,
 		Relationships:          relationships,
 		Tiers:                  models.ListTiers(),

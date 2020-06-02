@@ -70,6 +70,14 @@ func GetPermission(id uuid.UUID) (*Permission, error) {
 	return &item, nil
 }
 
+func ListPermissionsByResource(resourceID uuid.UUID) ([]Permission, error) {
+	var items []Permission
+	if err := session.Where("resource_id = ?", resourceID).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 func ListPermissionsByUser(userID uuid.UUID) ([]Permission, error) {
 	var items []Permission
 	if err := session.Where("user_id = ?", userID).Find(&items).Error; err != nil {
