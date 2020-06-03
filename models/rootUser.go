@@ -32,6 +32,7 @@ func rootUserCheck() (bool, error) {
 func rootUserCreate() error {
 	user := User{
 		Username: viper.GetString("rootUser.username"),
+		RealName: viper.GetString("rootUser.realname"),
 		Password: viper.GetString("rootUser.password"),
 		Email:    viper.GetString("rootUser.email"),
 	}
