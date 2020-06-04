@@ -245,11 +245,11 @@ func CompaniesChangelog(c *gin.Context) {
 func changeDescription(change models.Change) string {
 	switch change.Type {
 	case models.CompanyCreated:
-		return fmt.Sprintf("the company was created")
+		return "the company was created"
 	case models.CompanyUpdated:
 		return fmt.Sprintf("the value of '%s' was changed from '%s' to '%s'", change.Key, change.PreviousValue, change.NewValue)
 	case models.CompanyDeleted:
-		return fmt.Sprintf("the company was deleted")
+		return "the company was deleted"
 	case models.VerticalAdded:
 		return fmt.Sprintf("the vertical '%s' was added", change.NewValue)
 	case models.VerticalRemoved:
