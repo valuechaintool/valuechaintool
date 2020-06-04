@@ -31,12 +31,20 @@ func RelationshipsCreatePost(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
 		return
 	}
+
+	// User
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
 	relationship := models.Relationship{
 		LeftID:   leftID,
 		RightID:  rightID,
 		LeftTier: tier,
 	}
-	if err := models.NewRelationship(&relationship); err != nil {
+	if err := models.NewRelationship(&relationship, userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -75,7 +83,14 @@ func RelationshipsUpdate(c *gin.Context) {
 		return
 	}
 
-	if err := relationship.Update(tier, c.PostForm("notes")); err != nil {
+	// User
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if err := relationship.Update(tier, c.PostForm("notes"), userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -98,7 +113,15 @@ func RelationshipsDelete(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
-	if err := relationship.Delete(); err != nil {
+
+	// User
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if err := relationship.Delete(userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

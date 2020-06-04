@@ -1,9 +1,11 @@
 {{ define "content" }}
+<a class="btn btn-success" href="/companies/{{ .Company.ID }}/changelog">Object Changelog</a>
 {{ if $.CanUpdateCompany }}<a class="btn btn-primary" style="color: white;" id="edit-mode-button" onclick="enableEditMode()">Edit mode</a>{{ end }}
 <a class="btn btn-primary edit-mode" style="color: white;" onclick="disableEditMode()">Exit edit mode</a>
 {{ if $.CanDeleteCompany }}<a class="btn btn-danger edit-mode" href="/companies/{{ .Company.ID }}/delete">Delete company</a>{{ end }}
+<br /><br />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <div class="card">
             <div class="card-body">
                 <table width=100%>
@@ -72,7 +74,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card">
             <div class="card-body">
                 Owners:

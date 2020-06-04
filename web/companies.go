@@ -200,6 +200,71 @@ func CompaniesRead(c *gin.Context) {
 	c.HTML(http.StatusOK, "companies-single.html", d)
 }
 
+// CompaniesRead renders the /companies/[ID] page
+func CompaniesChangelog(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+	if !isAllowed(c, id, "readCompany") {
+		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
+		return
+	}
+	company, err := models.GetCompany(id)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	changes, err := models.ListChangesByCompany(id, true)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	// Change descriptions
+	changesDescriptions := []string{}
+	for _, change := range changes {
+		changesDescriptions = append(changesDescriptions, changeDescription(change))
+	}
+
+	d := struct {
+		PageTitle           string
+		Company             models.Company
+		Changes             []models.Change
+		ChangesDescriptions []string
+	}{
+		PageTitle:           fmt.Sprintf("Company %s history", (*company).Name),
+		Company:             *company,
+		Changes:             changes,
+		ChangesDescriptions: changesDescriptions,
+	}
+	c.HTML(http.StatusOK, "companies-changelog.html", d)
+}
+
+func changeDescription(change models.Change) string {
+	switch change.Type {
+	case models.CompanyCreated:
+		return fmt.Sprintf("the company was created")
+	case models.CompanyUpdated:
+		return fmt.Sprintf("the value of '%s' was changed from '%s' to '%s'", change.Key, change.PreviousValue, change.NewValue)
+	case models.CompanyDeleted:
+		return fmt.Sprintf("the company was deleted")
+	case models.VerticalAdded:
+		return fmt.Sprintf("the vertical '%s' was added", change.NewValue)
+	case models.VerticalRemoved:
+		return fmt.Sprintf("the vertical '%s' was removed", change.PreviousValue)
+	case models.RelationshipCreated:
+		return fmt.Sprintf("the relationship with '%s' was created", change.Relationship.RightCompany.Name)
+	case models.RelationshipUpdated:
+		return fmt.Sprintf("the relationship with '%s' had the field '%s' changed from '%s' to '%s'", change.Relationship.RightCompany.Name, change.Key, change.PreviousValue, change.NewValue)
+	case models.RelationshipDeleted:
+		return fmt.Sprintf("the relationship with '%s' was deleted", change.Relationship.RightCompany.Name)
+	default:
+		return "unimplemented"
+	}
+}
+
 // CompaniesUpdatePost parses the form from /companies/[ID]/edit page
 func CompaniesUpdatePost(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -253,7 +318,14 @@ func CompaniesUpdatePost(c *gin.Context) {
 		updates["country"] = country
 	}
 
-	if err := company.Update(updates); err != nil {
+	// User
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if err := company.Update(updates, userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -276,7 +348,15 @@ func CompaniesDelete(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
-	if err := company.Delete(); err != nil {
+
+	// User
+	userID, ok := c.Get("userID")
+	if !ok {
+		_ = c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	if err := company.Delete(userID.(uuid.UUID)); err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

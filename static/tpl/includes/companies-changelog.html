@@ -1,0 +1,22 @@
+{{ define "content" }}
+<a class="btn btn-success" href="/companies/{{ .Company.ID }}">Back to company</a>
+<br /><br />
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-bordered">
+            <tr>
+                <th scope="col">Time</th>
+                <th scope="col">User</th>
+                <th scope="col">Change</th>
+            </tr>
+            {{ range $k, $v := .Changes }}
+            <tr>
+                <td>{{ .Time }}</td>
+                <td>{{ .User.RealName }}</td>
+                <td>{{ index $.ChangesDescriptions $k }}</td>
+            </tr>
+            {{ end }}
+        </table>
+    </div>
+</div>
+{{ end }}

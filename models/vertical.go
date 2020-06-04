@@ -45,3 +45,12 @@ func GetVertical(id uuid.UUID) (*Vertical, error) {
 	}
 	return nil, errors.New("vertical not found")
 }
+
+func IsInVerticalArray(v Vertical, verticals []Vertical) bool {
+	for _, vertical := range verticals {
+		if v.ID == vertical.ID {
+			return true
+		}
+	}
+	return false
+}

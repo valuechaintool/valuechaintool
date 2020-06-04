@@ -74,19 +74,79 @@ func (c *Company) Owners() ([]User, error) {
 	return users, nil
 }
 
-func (c *Company) Update(items map[string]interface{}) error {
-	if _, ok := items["verticals"]; ok {
-		c.Verticals = items["verticals"].([]Vertical)
-	}
+func (c *Company) Update(items map[string]interface{}, userID uuid.UUID) error {
 	tx := session.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
-
 	if err := tx.Error; err != nil {
 		return err
+	}
+
+	if _, ok := items["name"]; ok {
+		if err := companyUpdateChange(tx, c.ID, userID, "name", c.Name, items["name"].(string)); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if _, ok := items["type_id"]; ok {
+		ct, err := GetCompanyType(items["type_id"].(uuid.UUID))
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := companyUpdateChange(tx, c.ID, userID, "type", c.Type.Name, ct.Name); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if _, ok := items["country"]; ok {
+		if err := companyUpdateChange(tx, c.ID, userID, "country", c.Country, items["country"].(string)); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	if _, ok := items["verticals"]; ok {
+		for _, v := range items["verticals"].([]Vertical) {
+			if !IsInVerticalArray(v, c.Verticals) {
+				vc, err := GetVertical(v.ID)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+				change := Change{
+					CompanyID:     c.ID,
+					UserID:        userID,
+					Type:          VerticalAdded,
+					Key:           "vertical",
+					PreviousValue: "",
+					NewValue:      vc.Name,
+				}
+				if err := newChange(tx, &change); err != nil {
+					tx.Rollback()
+					return err
+				}
+			}
+		}
+		for _, v := range c.Verticals {
+			if !IsInVerticalArray(v, items["verticals"].([]Vertical)) {
+				change := Change{
+					CompanyID:     c.ID,
+					UserID:        userID,
+					Type:          VerticalRemoved,
+					Key:           "vertical",
+					PreviousValue: v.Name,
+					NewValue:      "",
+				}
+				if err := newChange(tx, &change); err != nil {
+					tx.Rollback()
+					return err
+				}
+			}
+		}
+		c.Verticals = items["verticals"].([]Vertical)
 	}
 
 	if err := tx.Model(c).Updates(items).Error; err != nil {
@@ -107,7 +167,7 @@ func (c *Company) Save() error {
 	return session.Save(c).Error
 }
 
-func (c *Company) Delete() error {
+func (c *Company) Delete(userID uuid.UUID) error {
 	if c.ID == uuid.Nil {
 		return fmt.Errorf("missing Primary Key")
 	}
@@ -135,6 +195,16 @@ func (c *Company) Delete() error {
 	}
 
 	if err := syncCompanyVertical(tx, c.ID, []Vertical{}); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	change := Change{
+		CompanyID: c.ID,
+		UserID:    userID,
+		Type:      CompanyDeleted,
+	}
+	if err := newChange(tx, &change); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -182,6 +252,15 @@ func NewCompany(c *Company, owner uuid.UUID) error {
 		RoleID:     uuid.Must(uuid.Parse("5a2dbf8e-8ba8-4ca5-ac2d-cc11f1f0fb2d")),
 	}
 	if err := NewPermission(&permission); err != nil {
+		tx.Rollback()
+		return err
+	}
+	change := Change{
+		CompanyID: c.ID,
+		UserID:    owner,
+		Type:      CompanyCreated,
+	}
+	if err := newChange(tx, &change); err != nil {
 		tx.Rollback()
 		return err
 	}

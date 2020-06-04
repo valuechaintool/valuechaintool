@@ -22,6 +22,7 @@ func Init(dbSession *gorm.DB) error {
 	session.AutoMigrate(&Company{})
 	session.AutoMigrate(&CompanyVertical{})
 	session.AutoMigrate(&Relationship{})
+	session.AutoMigrate(&Change{})
 	if err := UnmarshalCompanyTypes(); err != nil {
 		return err
 	}

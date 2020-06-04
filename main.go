@@ -64,6 +64,7 @@ func main() {
 	r.GET("/", web.Home)
 	r.GET("/companies", web.CompaniesList)
 	r.GET("/companies/:id", web.CompaniesRead)
+	r.GET("/companies/:id/changelog", web.CompaniesChangelog)
 	r.GET("/companies/:id/new", web.CompaniesCreate)
 	r.POST("/companies/:id/new", web.CompaniesCreatePost)
 	r.POST("/companies/:id/edit", web.CompaniesUpdatePost)

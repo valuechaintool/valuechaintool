@@ -60,17 +60,104 @@ func (r *Relationship) Conflicts() bool {
 	return false
 }
 
-func (r *Relationship) Update(relTier int, notes string) error {
+func (r *Relationship) Update(relTier int, notes string, userID uuid.UUID) error {
 	or, err := GetRelationship(r.ID)
 	if err != nil {
 		return err
 	}
-	if or.LeftID == r.LeftID {
-		session.Model(&or).Update("left_tier", relTier)
-	} else {
-		session.Model(&or).Update("right_tier", relTier)
+
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		tx.Rollback()
+		return err
 	}
-	session.Model(&or).Update("notes", notes)
+
+	if or.LeftID == r.LeftID {
+		if or.LeftTier != relTier {
+			change := Change{
+				UserID:         userID,
+				CompanyID:      or.LeftID,
+				RelationshipID: &or.ID,
+				Type:           RelationshipUpdated,
+				Key:            "tier",
+				PreviousValue:  tiers[or.LeftTier].Name,
+				NewValue:       tiers[relTier].Name,
+			}
+			if err := newChange(tx, &change); err != nil {
+				tx.Rollback()
+				return err
+			}
+			if err := tx.Model(&or).Update("left_tier", relTier).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	} else {
+		if or.RightTier != relTier {
+			change := Change{
+				UserID:         userID,
+				CompanyID:      or.RightID,
+				RelationshipID: &or.ID,
+				Type:           RelationshipUpdated,
+				Key:            "tier",
+				PreviousValue:  tiers[or.RightTier].Name,
+				NewValue:       tiers[relTier].Name,
+			}
+			if err := newChange(tx, &change); err != nil {
+				tx.Rollback()
+				return err
+			}
+			if err := tx.Model(&or).Update("right_tier", relTier).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+
+	if or.Notes != notes {
+		changeLeft := Change{
+			UserID:         userID,
+			CompanyID:      r.LeftID,
+			RelationshipID: &or.ID,
+			Type:           RelationshipUpdated,
+			Key:            "notes",
+			PreviousValue:  or.Notes,
+			NewValue:       notes,
+		}
+		if err := newChange(tx, &changeLeft); err != nil {
+			tx.Rollback()
+			return err
+		}
+		changeRight := Change{
+			UserID:         userID,
+			CompanyID:      r.RightID,
+			RelationshipID: &or.ID,
+			Type:           RelationshipUpdated,
+			Key:            "notes",
+			PreviousValue:  or.Notes,
+			NewValue:       notes,
+		}
+		if err := newChange(tx, &changeRight); err != nil {
+			tx.Rollback()
+			return err
+		}
+		if err := tx.Model(&or).Update("notes", notes).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	nr, err := GetRelationship(r.ID)
 	if err != nil {
 		return err
@@ -111,14 +198,54 @@ func (r *Relationship) Save() error {
 	return session.Save(r).Error
 }
 
-func (r *Relationship) Delete() error {
+func (r *Relationship) Delete(userID uuid.UUID) error {
 	if r.ID == uuid.Nil {
 		return fmt.Errorf("missing Primary Key")
 	}
-	return session.Delete(r).Error
+
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	changeLeft := Change{
+		UserID:         userID,
+		CompanyID:      r.LeftID,
+		RelationshipID: &r.ID,
+		Type:           RelationshipDeleted,
+	}
+	if err := newChange(tx, &changeLeft); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	changeRight := Change{
+		UserID:         userID,
+		CompanyID:      r.RightID,
+		RelationshipID: &r.ID,
+		Type:           RelationshipDeleted,
+	}
+	if err := newChange(tx, &changeRight); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Delete(r).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
-func NewRelationship(r *Relationship) error {
+func NewRelationship(r *Relationship, userID uuid.UUID) error {
 	if r.ID == uuid.Nil {
 		var err error
 		if r.ID, err = uuid.NewRandom(); err != nil {
@@ -128,10 +255,59 @@ func NewRelationship(r *Relationship) error {
 	if r.Conflicts() {
 		return fmt.Errorf("the item already exists")
 	}
-	if err := session.Create(&r).Error; err != nil {
+
+	tx := session.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		tx.Rollback()
 		return err
 	}
-	return nil
+
+	if err := tx.Create(&r).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	changeLeft := Change{
+		UserID:         userID,
+		CompanyID:      r.LeftID,
+		RelationshipID: &r.ID,
+		Type:           RelationshipCreated,
+	}
+	if err := newChange(tx, &changeLeft); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	changeRight := Change{
+		UserID:         userID,
+		CompanyID:      r.RightID,
+		RelationshipID: &r.ID,
+		Type:           RelationshipCreated,
+	}
+	if err := newChange(tx, &changeRight); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func GetRelationshipWithDeleted(id uuid.UUID) (*Relationship, error) {
+	var item Relationship
+	err := session.Unscoped().Where("id = ?", id).First(&item).Error
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
 
 func GetRelationship(id uuid.UUID) (*Relationship, error) {
