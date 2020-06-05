@@ -79,7 +79,7 @@ func CompaniesCreatePost(c *gin.Context) {
 
 // CompaniesList renders the /companies page
 func CompaniesList(c *gin.Context) {
-	companies, err := models.ListCompanies(nil)
+	companies, err := models.ListCompanies(nil, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -113,7 +113,7 @@ func CompaniesRead(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
-	company, err := models.GetCompany(id)
+	company, err := models.GetCompany(id, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -150,7 +150,7 @@ func CompaniesRead(c *gin.Context) {
 		})
 	}
 
-	cps, err := models.ListCompanies(nil)
+	cps, err := models.ListCompanies(nil, false)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -211,7 +211,7 @@ func CompaniesChangelog(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
-	company, err := models.GetCompany(id)
+	company, err := models.GetCompany(id, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -276,7 +276,7 @@ func CompaniesUpdatePost(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
-	company, err := models.GetCompany(id)
+	company, err := models.GetCompany(id, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -343,7 +343,7 @@ func CompaniesDelete(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("operation not allowed"))
 		return
 	}
-	company, err := models.GetCompany(id)
+	company, err := models.GetCompany(id, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusNotFound, err)
 		return

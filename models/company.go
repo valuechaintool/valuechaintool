@@ -159,7 +159,7 @@ func (c *Company) Update(items map[string]interface{}, userID uuid.UUID) error {
 	}
 	tx.Commit()
 	var err error
-	c, err = GetCompany(c.ID) //nolint:staticcheck
+	c, err = GetCompany(c.ID, true) //nolint:staticcheck
 	return err
 }
 
@@ -268,7 +268,7 @@ func NewCompany(c *Company, owner uuid.UUID) error {
 	return nil
 }
 
-func ListCompanies(filters map[string]interface{}) ([]Company, error) {
+func ListCompanies(filters map[string]interface{}, vertical bool) ([]Company, error) {
 	var items []Company
 	if err := session.Where(filters).Find(&items).Error; err != nil {
 		return nil, err
@@ -279,11 +279,13 @@ func ListCompanies(filters map[string]interface{}) ([]Company, error) {
 			return nil, err
 		}
 		items[c].Type = *companyType
-		verticals, err := GetVerticalsByCompany(items[c].ID)
-		if err != nil {
-			return nil, err
+		if vertical {
+			verticals, err := GetVerticalsByCompany(items[c].ID)
+			if err != nil {
+				return nil, err
+			}
+			items[c].Verticals = verticals
 		}
-		items[c].Verticals = verticals
 	}
 	return items, nil
 }
@@ -308,7 +310,7 @@ func SearchCompanies(query string) ([]Company, error) {
 	return items, nil
 }
 
-func GetCompany(id uuid.UUID) (*Company, error) {
+func GetCompany(id uuid.UUID, vertical bool) (*Company, error) {
 	var item Company
 	err := session.Where("id = ?", id).First(&item).Error
 	if gorm.IsRecordNotFoundError(err) {
@@ -322,10 +324,12 @@ func GetCompany(id uuid.UUID) (*Company, error) {
 		return nil, err
 	}
 	item.Type = *companyType
-	verticals, err := GetVerticalsByCompany(item.ID)
-	if err != nil {
-		return nil, err
+	if vertical {
+		verticals, err := GetVerticalsByCompany(item.ID)
+		if err != nil {
+			return nil, err
+		}
+		item.Verticals = verticals
 	}
-	item.Verticals = verticals
 	return &item, nil
 }

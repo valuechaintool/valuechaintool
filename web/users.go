@@ -75,7 +75,7 @@ func UsersRead(c *gin.Context) {
 	}
 
 	// Companies
-	companies, err := models.ListCompanies(nil)
+	companies, err := models.ListCompanies(nil, false)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return

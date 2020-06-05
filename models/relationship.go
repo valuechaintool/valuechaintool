@@ -179,13 +179,13 @@ func (r *Relationship) Validate() error {
 func (r *Relationship) EagerLoad(side int) error {
 	switch side {
 	case 1:
-		c, err := GetCompany(r.LeftID)
+		c, err := GetCompany(r.LeftID, false)
 		if err != nil {
 			return err
 		}
 		r.LeftCompany = c
 	case 2:
-		c, err := GetCompany(r.RightID)
+		c, err := GetCompany(r.RightID, false)
 		if err != nil {
 			return err
 		}
