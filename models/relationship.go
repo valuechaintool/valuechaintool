@@ -13,9 +13,9 @@ type Relationship struct {
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	DeletedAt    *time.Time ``
-	LeftID       uuid.UUID  `json:"left_id" gorm:"type:uuid"`
+	LeftID       uuid.UUID  `json:"left_id" gorm:"type:uuid;index:relationships_left_id"`
 	LeftCompany  *Company   `json:"left_company" gorm:"foreignkey:LeftID"`
-	RightID      uuid.UUID  `json:"right_id" gorm:"type:uuid"`
+	RightID      uuid.UUID  `json:"right_id" gorm:"type:uuid;index:relationships_right_id"`
 	RightCompany *Company   `json:"right_company" gorm:"foreignkey:RightID"`
 	LeftTier     int        `json:"left_tier"`
 	RightTier    int        `json:"right_tier"`
