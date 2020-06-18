@@ -53,6 +53,9 @@ func main() {
 	router := gin.Default()
 	router.HTMLRender = web.LoadTemplates("static/tpl")
 	router.Use(static.Serve("/static", static.LocalFile("static", false)))
+	if viper.GetBool("tls.enabled") {
+		router.Use(web.MiddlewareHSTS())
+	}
 
 	// Authentication bits
 	router.GET("/login", web.Login)
@@ -110,10 +113,10 @@ func main() {
 		Handler:           router,
 	}
 
-	if len(viper.GetString("tlsCertificate")) != 0 {
+	if viper.GetBool("tls.enabled") {
 		srvConfig.Addr = ":10443"
 		srvConfig.TLSConfig = tlsConfig
-		if err := srvConfig.ListenAndServeTLS(viper.GetString("tlsCertificate"), viper.GetString("tlsPrivateKey")); err != nil {
+		if err := srvConfig.ListenAndServeTLS(viper.GetString("tls.certificate"), viper.GetString("tls.key")); err != nil {
 			log.Println(err)
 		}
 	} else {
