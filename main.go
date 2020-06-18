@@ -114,13 +114,14 @@ func main() {
 	}
 
 	if viper.GetBool("tls.enabled") {
-		srvConfig.Addr = ":10443"
+		srvConfig.Addr = fmt.Sprintf(":%d", viper.GetInt("tls.port"))
 		srvConfig.TLSConfig = tlsConfig
+		go http.ListenAndServe(fmt.Sprintf(":%d", viper.GetInt("port")), http.HandlerFunc(web.Redirect))
 		if err := srvConfig.ListenAndServeTLS(viper.GetString("tls.certificate"), viper.GetString("tls.key")); err != nil {
 			log.Println(err)
 		}
 	} else {
-		srvConfig.Addr = ":10080"
+		srvConfig.Addr = fmt.Sprintf(":%d", viper.GetInt("port"))
 		if err := srvConfig.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
