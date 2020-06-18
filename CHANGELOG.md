@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 <a name="unreleased"></a>
 ## [Unreleased]
+### Features
+- Allow to expose HTTPS
+
+<a name="0.2.0"></a>
+## [0.2.0] - 2020-06-05
 ### Bug Fixes
 - Fix white company page if it had a relationship with a deleted company
 

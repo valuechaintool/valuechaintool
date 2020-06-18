@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -85,7 +88,38 @@ func main() {
 	router.GET("/readiness", web.Readiness)
 
 	log.Println("ready to serve")
-	if err := router.Run(":10080"); err != nil {
-		log.Println(err)
+
+	tlsConfig := &tls.Config{
+		MinVersion:               tls.VersionTLS12,
+		PreferServerCipherSuites: true,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+		},
+	}
+
+	srvConfig := &http.Server{
+		ReadTimeout:       1 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       30 * time.Second,
+		ReadHeaderTimeout: 2 * time.Second,
+		Handler:           router,
+	}
+
+	if len(viper.GetString("tlsCertificate")) != 0 {
+		srvConfig.Addr = ":10443"
+		srvConfig.TLSConfig = tlsConfig
+		if err := srvConfig.ListenAndServeTLS(viper.GetString("tlsCertificate"), viper.GetString("tlsPrivateKey")); err != nil {
+			log.Println(err)
+		}
+	} else {
+		srvConfig.Addr = ":10080"
+		if err := srvConfig.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
 	}
 }
