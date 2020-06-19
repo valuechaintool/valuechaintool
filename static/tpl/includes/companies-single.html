@@ -91,14 +91,20 @@
             <div class="card-body">
                 <table style="width: 100%" aria-describedby="Company relationships">
                     <tr>
-                        {{ range $i, $c := .CompanyTypes }}<td style="width: 10%; vertical-align: top;">
-                            <strong>{{ $c.Abbreviation }}</strong>
+                        {{ range .CompanyTypes }}
+                        <th scope="col">
+                            {{ .Abbreviation }}
                             {{ if $.CanCreateRelationships }}
-                            <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-{{ $c.Abbreviation }}').style.display = 'block';">
+                            <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-{{ .Abbreviation }}').style.display = 'block';">
                                 <em class="fas fa-plus" style="color: green;"></em>
                             </a>
                             {{ end }}
-                            <br />
+                        </th>
+                        {{ end }}
+                    </tr>
+                    <tr>
+                        {{ range $i, $c := .CompanyTypes }}
+                        <td style="width: 10%; vertical-align: top;">
                             <div class="card" id="new-{{ $c.Abbreviation }}" style="width: 100%; display: none;">
                                 <div class="card-body">
                                     <form method="post" action="/companies/{{ uts $.Company.ID }}/relationships">
