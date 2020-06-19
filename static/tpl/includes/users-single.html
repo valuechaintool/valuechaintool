@@ -6,17 +6,17 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
-                <table width=100%>
+                <table style="width: 100%" aria-describedby="User properties">
                     <tr>
-                        <th>Username</th>
+                        <th scope="row">Username</th>
                         <td>{{ .User.Username }}</td>
                     </tr>
                     <tr>
-                        <th>Real Name</th>
+                        <th scope="row">Real Name</th>
                         <td>{{ .User.RealName }}</td>
                     </tr>
                     <tr>
-                        <th>Email</th>
+                        <th scope="row">Email</th>
                         <td>{{ .User.Email }}</td>
                     </tr>
                 </table>
@@ -29,14 +29,14 @@
                 Global:
                 {{ if $.CanManagePermissions }}
                 <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-global').style.display = 'block';">
-                    <i class="fas fa-plus" style="color: green;"></i>
+                    <em class="fas fa-plus" style="color: green;"></em>
                 </a>
                 <div class="card" id="new-global" style="width: 100%; display: none;">
                     <div class="card-body">
                         <form method="post" action="/users/{{ $.User.ID }}/permissions">
                             <div style="float: inline-end;">
                                 <a href="#" onclick="javascript:document.getElementById('new-global').style.display = 'none';">
-                                    <i class="fas fa-times" style="color: red;"></i>
+                                    <em class="fas fa-times" style="color: red;"></em>
                                 </a>
                             </div>
                             <div class="form-group" style="display: none;">
@@ -61,25 +61,25 @@
                     {{ range .PermissionsGlobal }}
                     <li>
                         {{ if $.CanManagePermissions }}
-                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><i class="fas fa-trash"></i></a>
+                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><em class="fas fa-trash"></em></a>
                         {{ end }}
                         {{ (index $.Roles (uts .RoleID)).Name }}
                     </li>
                     {{ else }}
-                    <li><i>none</i></li>
+                    <li><em>none</em></li>
                     {{ end }}
                 </ul>
                 Resource specific:
                 {{ if $.CanManagePermissions }}
                 <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-resource').style.display = 'block';">
-                    <i class="fas fa-plus" style="color: green;"></i>
+                    <em class="fas fa-plus" style="color: green;"></em>
                 </a>
                 <div class="card" id="new-resource" style="width: 100%; display: none;">
                     <div class="card-body">
                         <form method="post" action="/users/{{ $.User.ID }}/permissions">
                             <div style="float: inline-end;">
                                 <a href="#" onclick="javascript:document.getElementById('new-resource').style.display = 'none';">
-                                    <i class="fas fa-times" style="color: red;"></i>
+                                    <em class="fas fa-times" style="color: red;"></em>
                                 </a>
                             </div>
                             <div class="form-group">
@@ -106,13 +106,13 @@
                     {{ range .PermissionsLocal }}
                     <li>
                         {{ if $.CanManagePermissions }}
-                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><i class="fas fa-trash"></i></a>
+                        <a class="edit-mode" href="/users/{{ $.User.ID }}/permissions/{{ .ID }}/delete"><em class="fas fa-trash"></em></a>
                         {{ end }}
                         <a href="/companies/{{ (index $.Companies (uts .ResourceID)).ID }}">{{ (index $.Companies (uts .ResourceID)).Name }}</a>
                         - {{ (index $.Roles (uts .RoleID)).Name }}
                     </li>
                     {{ else }}
-                    <li><i>none</i></li>
+                    <li><em>none</em></li>
                     {{ end }}
                 </ul>
             </div>

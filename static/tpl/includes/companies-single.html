@@ -8,11 +8,11 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <table width=100%>
+                <table style="width: 100%" aria-describedby="Company properties">
                     <tr>
-                        <th>Name</th>
+                        <th scope="row">Name</th>
                         <td>
-                            <div id="name-label">{{ .Company.Name }}<a class="edit-mode" href="#" onclick="nameFormOn()"><i class="fas fa-pen"></i></a></div>
+                            <div id="name-label">{{ .Company.Name }}<a class="edit-mode" href="#" onclick="nameFormOn()"><em class="fas fa-pen"></em></a></div>
                             <form id="name-form" style="display: none;" class="form-inline" method="post" action="/companies/{{ uts $.Company.ID }}/edit">
                                 <input type="text" class="form-control mb-2 mr-sm-2" name="name" value="{{ .Company.Name }}">
                                 <button type="submit" class="btn btn-primary mb-2">Save</button>
@@ -21,11 +21,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Verticals</th>
+                        <th scope="row">Verticals</th>
                         <td>
                             <div id="sector-label">
                                 {{ range $k, $v := .Company.Verticals }}{{ if ne $k 0 }}, {{ end }}{{ $v.Name }}{{ end }}
-                                <a class="edit-mode" href="#" onclick="sectorFormOn()"><i class="fas fa-pen"></i></a>
+                                <a class="edit-mode" href="#" onclick="sectorFormOn()"><em class="fas fa-pen"></em></a>
                             </div>
                             <form id="sector-form" style="display: none;" class="form-inline" method="post" action="/companies/{{ uts $.Company.ID }}/edit">
                                 <div class="form-group">
@@ -42,11 +42,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Type</th>
+                        <th scope="row">Type</th>
                         <td>
                             <div id="type-label">
                                 {{ .Company.Type.Name }} ({{ .Company.Type.Abbreviation }})
-                                <a class="edit-mode" href="#" onclick="typeFormOn()"><i class="fas fa-pen"></i></a>
+                                <a class="edit-mode" href="#" onclick="typeFormOn()"><em class="fas fa-pen"></em></a>
                             </div>
                             <form id="type-form" style="display: none;" class="form-inline" method="post" action="/companies/{{ uts $.Company.ID }}/edit">
                                 <select class="custom-select my-1 mr-sm-2" id="type" name="type">
@@ -60,9 +60,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Headquarter Country</th>
+                        <th scope="row">Headquarter Country</th>
                         <td>
-                            <div id="country-label">{{ .Company.Country }}<a class="edit-mode" href="#" onclick="countryFormOn()"><i class="fas fa-pen"></i></a></div>
+                            <div id="country-label">{{ .Company.Country }}<a class="edit-mode" href="#" onclick="countryFormOn()"><em class="fas fa-pen"></em></a></div>
                             <form id="country-form" style="display: none;" class="form-inline" method="post" action="/companies/{{ uts $.Company.ID }}/edit">
                                 <input type="text" class="form-control mb-2 mr-sm-2" name="country" value="{{ .Company.Country }}">
                                 <button type="submit" class="btn btn-primary mb-2">Save</button>
@@ -89,13 +89,13 @@
     <div class="col-md-12" style="margin-top:30px;">
         <div class="card">
             <div class="card-body">
-                <table style="width: 100%">
+                <table style="width: 100%" aria-describedby="Company relationships">
                     <tr>
                         {{ range $i, $c := .CompanyTypes }}<td style="width: 10%; vertical-align: top;">
-                            <b>{{ $c.Abbreviation }}</b>
+                            <strong>{{ $c.Abbreviation }}</strong>
                             {{ if $.CanCreateRelationships }}
                             <a class="edit-mode" href="#" onclick="javascript:document.getElementById('new-{{ $c.Abbreviation }}').style.display = 'block';">
-                                <i class="fas fa-plus" style="color: green;"></i>
+                                <em class="fas fa-plus" style="color: green;"></em>
                             </a>
                             {{ end }}
                             <br />
@@ -104,7 +104,7 @@
                                     <form method="post" action="/companies/{{ uts $.Company.ID }}/relationships">
                                         <div style="float: inline-end;">
                                             <a href="#" onclick="javascript:document.getElementById('new-{{ $c.Abbreviation }}').style.display = 'none';">
-                                                <i class="fas fa-times" style="color: red;"></i>
+                                                <em class="fas fa-times" style="color: red;"></em>
                                             </a>
                                         </div>
                                         <div class="form-group" style="display: none;">
@@ -131,7 +131,7 @@
                                                 <input class="form-check-input" type="radio" name="tier" id="tier-{{ $c.Abbreviation }}-{{ $t.ID }}" value="{{ $t.ID }}" {{ if eq $j 0 }}checked{{ end }}>
                                                 <label class="form-check-label" for="tier-{{ $c.Abbreviation }}-{{ $t.ID }}">
                                                     {{ $t.Name }}
-                                                    <i class="fas fa-medal" style="color: #{{ $t.Color }}"></i>
+                                                    <em class="fas fa-medal" style="color: #{{ $t.Color }}"></em>
                                                 </label>
                                             </div>
                                             {{ end }}
@@ -143,20 +143,20 @@
                             </div>
                             {{ range $j, $r := (index $.Relationships (uts $c.ID)) }}
                             {{ if $.CanDeleteRelationships }}
-                            <a class="edit-mode" href="/companies/{{ uts $.Company.ID }}/relationships/{{ $r.ID }}/delete"><i class="fas fa-trash"></i></a>
+                            <a class="edit-mode" href="/companies/{{ uts $.Company.ID }}/relationships/{{ $r.ID }}/delete"><em class="fas fa-trash"></em></a>
                             {{ end }}
                             {{ if $.CanUpdateRelationships }}
-                            <a class="edit-mode" href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'block';"><i class="fas fa-pen"></i></a>
+                            <a class="edit-mode" href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'block';"><em class="fas fa-pen"></em></a>
                             {{ end }}
                             <a href="/companies/{{ uts $r.RightCompany.ID}}" title="{{ $r.Notes }}">{{ $r.RightCompany.Name }}</a>
-                            <i class="fas fa-medal" title="{{ (index $.Tiers $r.LeftTier).Name }}" style="color: #{{ (index $.Tiers $r.LeftTier).Color }}"></i>
+                            <em class="fas fa-medal" title="{{ (index $.Tiers $r.LeftTier).Name }}" style="color: #{{ (index $.Tiers $r.LeftTier).Color }}"></em>
                             <br />
                             <div class="card" id="edit-{{ $r.ID }}" style="width: 100%; display: none;">
                                 <div class="card-body">
                                     <form method="post" action="/companies/{{ $.Company.ID }}/relationships/{{ $r.ID }}">
                                         <div style="float: inline-end;">
                                             <a href="#" onclick="javascript:document.getElementById('edit-{{ $r.ID }}').style.display = 'none';">
-                                                <i class="fas fa-times" style="color: red;"></i>
+                                                <em class="fas fa-times" style="color: red;"></em>
                                             </a>
                                         </div>
                                         <div class="form-group">
@@ -167,7 +167,7 @@
                                                 <input class="form-check-input" type="radio" name="tier" id="tier-{{ $r.ID }}-{{ $t.ID }}" value="{{ $t.ID }}" {{ if eq $j $r.LeftTier }}checked{{ end }}>
                                                 <label class="form-check-label" for="tier-{{ $r.ID }}-{{ $t.ID }}">
                                                     {{ $t.Name }}
-                                                    <i class="fas fa-medal" style="color: #{{ $t.Color }}"></i>
+                                                    <em class="fas fa-medal" style="color: #{{ $t.Color }}"></em>
                                                 </label>
                                             </div>
                                             {{ end }}

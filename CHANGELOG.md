@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 - Implement HSTS header
 - Implement HTTP -> HTTPS redirects
 
+### Code Refactoring
+- Improved produced HTML code
+
 <a name="0.2.0"></a>
 ## [0.2.0] - 2020-06-05
 ### Bug Fixes

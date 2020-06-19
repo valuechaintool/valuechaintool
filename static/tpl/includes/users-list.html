@@ -3,7 +3,12 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-                <table width=100%>
+                <table style="width: 100%" aria-describedby="List of users">
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Real Name</th>
+                        <th scope="col">Email</th>
+                    </tr>
                 {{ range $key, $value := .Users }}
                     <tr>
                         <td><a href="/users/{{ .ID }}">{{ .Username }}</a></td>

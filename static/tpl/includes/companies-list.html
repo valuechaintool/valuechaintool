@@ -5,7 +5,12 @@
     <div class="col">
         <div class="card">
             <div class="card-body">
-                <table width=100%>
+                <table style="width: 100%" aria-describedby="List of companies">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Verticals</th>
+                    </tr>
                 {{ range $key, $value := .Companies }}
                     <tr>
                         <td><a href="/companies/{{ .ID }}">{{ .Name }}</a></td>
