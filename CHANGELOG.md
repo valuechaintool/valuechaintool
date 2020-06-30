@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 - Implement HSTS header
 - Implement HTTP -> HTTPS redirects
 - Make possible to change the tool title
+- Add sensible defaults to configuration variables
 
 ### Code Refactoring
 - Improved produced HTML code
