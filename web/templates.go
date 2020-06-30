@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/multitemplate"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 )
 
 func LoadTemplates(templatesDir string) multitemplate.Renderer {
@@ -14,6 +15,9 @@ func LoadTemplates(templatesDir string) multitemplate.Renderer {
 	funcMap := template.FuncMap{
 		"uts": func(u uuid.UUID) string {
 			return u.String()
+		},
+		"viperString": func(s string) string {
+			return viper.GetString(s)
 		},
 	}
 

@@ -21,6 +21,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Println("starting")
 
+	setViperDefaults()
 	viper.SetConfigType("yaml")
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -116,7 +117,12 @@ func main() {
 	if viper.GetBool("tls.enabled") {
 		srvConfig.Addr = fmt.Sprintf(":%d", viper.GetInt("tls.port"))
 		srvConfig.TLSConfig = tlsConfig
-		go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", viper.GetInt("port")), http.HandlerFunc(web.Redirect)))
+		go func() {
+			err := http.ListenAndServe(fmt.Sprintf(":%d", viper.GetInt("port")), http.HandlerFunc(web.Redirect))
+			if err != nil {
+				panic(err.Error())
+			}
+		}()
 		if err := srvConfig.ListenAndServeTLS(viper.GetString("tls.certificate"), viper.GetString("tls.key")); err != nil {
 			log.Println(err)
 		}
