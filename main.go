@@ -54,7 +54,7 @@ func main() {
 	router := gin.Default()
 	router.HTMLRender = web.LoadTemplates("static/tpl")
 	router.Use(static.Serve("/static", static.LocalFile("static", false)))
-	if viper.GetBool("tls.enabled") {
+	if viper.GetBool("tls.enabled") && viper.GetInt("tls.hsts") > 0 {
 		router.Use(web.MiddlewareHSTS())
 	}
 
