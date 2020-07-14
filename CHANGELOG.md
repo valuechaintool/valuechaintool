@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html
 
 <a name="unreleased"></a>
 ## [Unreleased]
+
+<a name="0.3.0"></a>
+## [0.3.0] - 2020-07-14
 ### Features
 - Allow to expose HTTPS
 - Implement HSTS header
